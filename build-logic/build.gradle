@@ -1,0 +1,14 @@
+plugins {
+    id 'groovy-gradle-plugin'
+}
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+}
+
+dependencies {
+    // Puts the Kotlin plugin on the convention-plugin classpath so the
+    // precompiled scripts below can apply it by id without a version.
+    implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.10'
+}
