@@ -1,5 +1,6 @@
 package dev.zoenetic.brokenpromises.environment
 
+import dev.zoenetic.brokenpromises.heat.Temperature
 import kotlin.math.pow
 
 @JvmInline

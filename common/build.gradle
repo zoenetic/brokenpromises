@@ -11,6 +11,8 @@ neoForge {
     if (at.exists()) {
         accessTransformers.from(at.absolutePath)
     }
+    // Vanilla is only wired into main by default; tests need it too.
+    addModdingDependenciesTo(sourceSets.test)
 }
 
 dependencies {
@@ -21,6 +23,12 @@ dependencies {
     compileOnly('net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7')
     compileOnly(annotationProcessor('io.github.llamalad7:mixinextras-common:0.5.3'))
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
+}
+
+// kotlin-test picks its backend from the test task's framework, so this has to
+// be set for @Test to resolve to JUnit 5.
+tasks.named('test', Test) {
+    useJUnitPlatform()
 }
 
 configurations {

@@ -22,14 +22,18 @@ dependencies {
     commonResources(project(path: ':common', configuration: 'commonResources'))
 }
 
+// Filtered to real sources: these configurations resolve to whole directories,
+// and an unfiltered tree counts placeholders like .gitkeep as input. That stops
+// Gradle marking an empty compile task NO-SOURCE, so javac runs with nothing to
+// do and fails with "error: no source files".
 tasks.named('compileKotlin') {
     dependsOn(configurations.commonKotlin)
-    source(configurations.commonKotlin)
+    source(configurations.commonKotlin.asFileTree.matching { include '**/*.kt' })
 }
 
 tasks.named('compileJava', JavaCompile) {
     dependsOn(configurations.commonJava)
-    source(configurations.commonJava)
+    source(configurations.commonJava.asFileTree.matching { include '**/*.java' })
 }
 
 processResources {
