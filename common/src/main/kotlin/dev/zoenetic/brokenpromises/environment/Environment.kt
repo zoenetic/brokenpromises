@@ -1,9 +1,18 @@
 package dev.zoenetic.brokenpromises.environment
 
+import dev.zoenetic.brokenpromises.heat.HEAT_SOURCE_BLOCKS
+import dev.zoenetic.brokenpromises.heat.Power
+import dev.zoenetic.brokenpromises.heat.isHeatSourceBlock
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import net.minecraft.core.BlockPos
+import net.minecraft.core.SectionPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.chunk.LevelChunk
 import java.util.UUID
+import java.util.WeakHashMap
 
 internal const val INTERVAL_TICKS = 20
 

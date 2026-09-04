@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     id 'java-library'
     id 'org.jetbrains.kotlin.jvm'
@@ -16,13 +14,7 @@ java {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_25
         progressiveMode = true
-        // Kotlin interface default methods must be real JVM defaults, or they
-        // won't satisfy the interfaces the loaders hand you.
-        // Experimental: warns when a function's return value is discarded.
-        // 'full' treats every declaration in the module as must-use;
-        // @IgnorableReturnValue opts an individual function out.
         freeCompilerArgs.addAll('-Xjvm-default=all', '-Xreturn-value-checker=full')
     }
     explicitApiWarning()
