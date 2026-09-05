@@ -11,18 +11,17 @@ import net.minecraft.world.level.block.Blocks
 
 public enum class Conduction
 
-public val METAL: TagKey<Block>
-    = TagKey.create(
-        Registries.BLOCK,
-        Identifier.fromNamespaceAndPath(MOD_ID, "metal")
-    )
+public val METAL: TagKey<Block> = TagKey.create(
+    Registries.BLOCK,
+    Identifier.fromNamespaceAndPath(MOD_ID, "metal")
+)
 
 public enum class OnSurface(public val conductance: Double) {
-    SNOW        (1.2),
-    STONE       (1.5),
-    METAL       (2.0),
-    ICE         (2.5),
-    MAGMA       (3.0),
+    SNOW(1.2),
+    STONE(1.5),
+    METAL(2.0),
+    ICE(2.5),
+    MAGMA(3.0),
 }
 
 public fun ServerPlayer.getOnSurface(): OnSurface? {
@@ -36,16 +35,16 @@ public fun ServerPlayer.getOnSurface(): OnSurface? {
 }
 
 public enum class InMedium(public val conductance: Double) {
-    RAIN        (5.0),
-    WATER       (25.0),
-    POWDER_SNOW (50.0),
-    LAVA        (1000.0),
+    RAIN(5.0),
+    WATER(25.0),
+    POWDER_SNOW(50.0),
+    LAVA(1000.0),
 }
 
 public fun ServerPlayer.getInMedium(): InMedium? {
-    if (this.isInLava)          return InMedium.LAVA
-    if (this.isInWater)         return InMedium.WATER
-    if (this.isInPowderSnow)    return InMedium.POWDER_SNOW
-    if (this.isInWaterOrRain)   return InMedium.RAIN
+    if (this.isInLava) return InMedium.LAVA
+    if (this.isInWater) return InMedium.WATER
+    if (this.isInPowderSnow) return InMedium.POWDER_SNOW
+    if (this.isInWaterOrRain) return InMedium.RAIN
     return null
 }

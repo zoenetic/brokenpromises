@@ -2,18 +2,17 @@ package dev.zoenetic.brokenpromises.environment
 
 import dev.zoenetic.brokenpromises.heat.HeatSource
 import dev.zoenetic.brokenpromises.heat.MAX_HEAT_RADIUS
-import dev.zoenetic.brokenpromises.heat.MIN_HEAT_DISTANCE_SQ
 import dev.zoenetic.brokenpromises.heat.Temperature
 import dev.zoenetic.brokenpromises.heat.adjustTemperatureForAltitude
 import dev.zoenetic.brokenpromises.heat.globalHeatSourceState
 import dev.zoenetic.brokenpromises.heat.isHeatSourceBlock
 import dev.zoenetic.brokenpromises.heat.isLit
+import dev.zoenetic.brokenpromises.heat.sumHeatSources
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.ChunkPos
-import net.minecraft.world.phys.Vec3
 import java.util.UUID
 
 public data class Conditions(
@@ -71,11 +70,4 @@ internal fun getMaxPos(level: ServerLevel, pos: BlockPos, r: Int): BlockPos {
     return BlockPos(pos.x + r, maxY, pos.z + r)
 }
 
-internal fun sumHeatSources(body: Vec3, sources: List<HeatSource>): Double {
-    var heat = 0.0
-    for ((position, power) in sources) {
-        val distanceSq = body.distanceToSqr(Vec3.atCenterOf(position))
-        heat += power.value / distanceSq.coerceAtLeast(MIN_HEAT_DISTANCE_SQ)
-    }
-    return heat
-}
+

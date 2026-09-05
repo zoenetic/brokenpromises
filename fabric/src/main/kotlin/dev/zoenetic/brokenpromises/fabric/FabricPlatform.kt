@@ -1,7 +1,6 @@
 package dev.zoenetic.brokenpromises.fabric
 
 import dev.zoenetic.brokenpromises.BrokenPromises.MOD_ID
-import dev.zoenetic.brokenpromises.vitals.BodyTemperature
 import dev.zoenetic.brokenpromises.platform.Platform
 import dev.zoenetic.brokenpromises.vitals.Vitals
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry
@@ -20,14 +19,24 @@ public object FabricPlatform : Platform {
     override fun isModLoaded(modId: String): Boolean =
         FabricLoader.getInstance().isModLoaded(modId)
 
-    private val VITALS: AttachmentType<Vitals> = AttachmentRegistry.create(Identifier.fromNamespaceAndPath(MOD_ID, "vitals")) { builder ->
-        builder
-            .persistent(Vitals.CODEC)
-            .initializer { Vitals.DEFAULT }
-            .syncWith(Vitals.STREAM_CODEC, AttachmentSyncPredicate.targetOnly())
-    }
+    private val VITALS: AttachmentType<Vitals> =
+        AttachmentRegistry.create(
+            Identifier.fromNamespaceAndPath(
+                MOD_ID,
+                "vitals"
+            )
+        ) { builder ->
+            builder
+                .persistent(Vitals.CODEC)
+                .initializer { Vitals.DEFAULT }
+                .syncWith(
+                    Vitals.STREAM_CODEC,
+                    AttachmentSyncPredicate.targetOnly()
+                )
+        }
 
-    override fun vitals(player: ServerPlayer): Vitals = player.getAttachedOrCreate(VITALS)
+    override fun vitals(player: ServerPlayer): Vitals =
+        player.getAttachedOrCreate(VITALS)
 
     override fun setVitals(
         player: ServerPlayer,

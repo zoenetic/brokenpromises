@@ -2,7 +2,6 @@ package dev.zoenetic.brokenpromises.fabric
 
 import dev.zoenetic.brokenpromises.BrokenPromises
 import dev.zoenetic.brokenpromises.commands.addDevWatcher
-import dev.zoenetic.brokenpromises.commands.exposureCommand
 import dev.zoenetic.brokenpromises.commands.rootCommand
 import dev.zoenetic.brokenpromises.commands.setBodyTemperatureCommand
 import dev.zoenetic.brokenpromises.commands.watchCommand
@@ -22,12 +21,11 @@ public object BrokenPromisesFabric : ModInitializer {
         BrokenPromises.init(FabricPlatform)
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ -> dispatcher.register(
             rootCommand
-                .then(exposureCommand)
                 .then(setBodyTemperatureCommand)
                 .then(watchCommand)
         ) }
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
-            if (FabricPlatform.isDevelopmentEnvironment) addDevWatcher(handler.player)
+            addDevWatcher(handler.player)
         }
         ServerChunkEvents.CHUNK_LOAD.register { _, chunk, _ ->
             chunk.rebuildHeatSourceState()

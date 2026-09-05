@@ -1,5 +1,7 @@
 package dev.zoenetic.brokenpromises.environment
 
+import dev.zoenetic.brokenpromises.vitals.tickVitals
+import dev.zoenetic.brokenpromises.effects.player.tickMovementSpeedReduction
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.LivingEntity
@@ -25,6 +27,7 @@ internal fun ServerPlayer.tickEnvironment(tick: Long): ConditionsSample {
     val climate = getClimate()
     val conditions = getConditions(climate)
     tickVitals(conditions, elapsed)
+    tickMovementSpeedReduction()
     val sample = ConditionsSample(
         this.uuid,
         tick,

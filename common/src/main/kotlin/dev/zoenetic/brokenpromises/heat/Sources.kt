@@ -3,13 +3,13 @@ package dev.zoenetic.brokenpromises.heat
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.chunk.LevelChunk
+import net.minecraft.world.phys.Vec3
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.sqrt
@@ -25,15 +25,18 @@ public data class HeatSource(
     val power: Power,
 )
 
-public val HEAT_SOURCE_BLOCKS: Map<Block, Power> by lazy { mapOf(
+public val HEAT_SOURCE_BLOCKS: Map<Block, Power> by lazy {
+    mapOf(
         Blocks.CAMPFIRE to Power(30.0),
         Blocks.CANDLE to Power(0.5),
+        Blocks.FIRE to Power(30.0),
         Blocks.FURNACE to Power(20.0),
         Blocks.LAVA to Power(100.0),
         Blocks.MAGMA_BLOCK to Power(20.0),
         Blocks.TORCH to Power(3.0),
         Blocks.WALL_TORCH to Power(3.0),
-    )}
+    )
+}
 
 internal val MAX_HEAT_RADIUS: Int by lazy {
     val maxPower = HEAT_SOURCE_BLOCKS.values.maxOf { it.value }
@@ -107,4 +110,13 @@ public fun LevelChunk.dropStateForSingleHeatSource(blockPos: BlockPos) {
     val levelSources = globalHeatSourceState[level] ?: return
     val chunkSources = levelSources[pos.pack()] ?: return
     chunkSources.remove(blockPos.asLong())
+}
+
+internal fun sumHeatSources(body: Vec3, sources: List<HeatSource>): Double {
+    var heat = 0.0
+    for ((position, power) in sources) {
+        val distanceSq = body.distanceToSqr(Vec3.atCenterOf(position))
+        heat += power.value / distanceSq.coerceAtLeast(MIN_HEAT_DISTANCE_SQ)
+    }
+    return heat
 }

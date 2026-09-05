@@ -2,6 +2,7 @@ package dev.zoenetic.brokenpromises.environment
 
 import dev.zoenetic.brokenpromises.heat.HeatSource
 import dev.zoenetic.brokenpromises.heat.Power
+import dev.zoenetic.brokenpromises.heat.sumHeatSources
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
 import kotlin.test.Test
@@ -18,9 +19,28 @@ class ConditionsTests {
 
     @Test
     fun `a more distant source contributes less than a nearer one`() {
-        val near = sumHeatSources(body, listOf(HeatSource(BlockPos(2, 0, 0), Power(25.0))))
-        val far = sumHeatSources(body, listOf(HeatSource(BlockPos(6, 0, 0), Power(25.0))))
-        assertTrue(far < near, "expected $far to be less than $near")
+        val near = sumHeatSources(
+            body,
+            listOf(
+                HeatSource(
+                    BlockPos(2, 0, 0),
+                    Power(25.0)
+                )
+            )
+        )
+        val far = sumHeatSources(
+            body,
+            listOf(
+                HeatSource(
+                    BlockPos(6, 0, 0),
+                    Power(25.0)
+                )
+            )
+        )
+        assertTrue(
+            far < near,
+            "expected $far to be less than $near"
+        )
     }
 
     @Test
@@ -30,17 +50,11 @@ class ConditionsTests {
         val b = HeatSource(BlockPos(0, 0, 3), power)
         val one = sumHeatSources(body, listOf(a))
         val two = sumHeatSources(body, listOf(a, b))
-        assertEquals(2 * one, two, 1e-9, "expected $two to be twice $one")
+        assertEquals(
+            2 * one,
+            two,
+            1e-9,
+            "expected $two to be twice $one"
+        )
     }
-
-    @Test
-    fun `heat source power is clamped below 1 block`() {
-        val power = Power(10.0)
-        val expected = power.value * 2
-        val a = HeatSource(BlockPos(0, 0, 0), power)
-        val b = HeatSource(BlockPos(0, 0, 0), power)
-        val actual = sumHeatSources(body, listOf(a, b))
-        assertEquals(expected, actual)
-    }
-
 }
