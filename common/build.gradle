@@ -23,12 +23,14 @@ dependencies {
     compileOnly('net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7')
     compileOnly(annotationProcessor('io.github.llamalad7:mixinextras-common:0.5.3'))
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation 'org.mockito:mockito-core:5.20.0'
 }
 
 // kotlin-test picks its backend from the test task's framework, so this has to
 // be set for @Test to resolve to JUnit 5.
 tasks.named('test', Test) {
     useJUnitPlatform()
+    testLogging { exceptionFormat = 'full' }
 }
 
 configurations {

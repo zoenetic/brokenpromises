@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
@@ -13,7 +14,7 @@ import java.util.*
 import kotlin.math.ceil
 import kotlin.math.sqrt
 
-public val globalHeatSourceState: WeakHashMap<ServerLevel, Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>>> =
+public val globalHeatSourceState: WeakHashMap<Level, Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>>> =
     WeakHashMap()
 
 internal const val MIN_HEAT_DISTANCE_SQ = 1.0
@@ -42,21 +43,21 @@ public fun BlockState.isHeatSourceBlock(): Boolean {
     return HEAT_SOURCE_BLOCKS.containsKey(block)
 }
 
-public fun BlockState.isLitHeatSourceBlock(): Boolean {
+public fun BlockState.isLit(): Boolean {
     return getValueOrElse(BlockStateProperties.LIT, true)
 }
 
-public fun ServerLevel.getOrPutHeatSourceState(): Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>> {
+public fun Level.getOrPutHeatSourceState(): Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>> {
     return globalHeatSourceState.getOrPut(this) { Long2ObjectOpenHashMap() }
 }
 
 public fun LevelChunk.getOrPutHeatSourceState(): Long2ObjectOpenHashMap<Power> {
-    val levelSources = (level as ServerLevel).getOrPutHeatSourceState()
+    val levelSources = level.getOrPutHeatSourceState()
     return levelSources.getOrPut(this.pos.pack()) { Long2ObjectOpenHashMap() }
 }
 
 public fun LevelChunk.rebuildHeatSourceState() {
-    val levelSources = (level as ServerLevel).getOrPutHeatSourceState()
+    val levelSources = level.getOrPutHeatSourceState()
     val chunkSources = getHeatSources()
     levelSources.put(pos.pack(), chunkSources)
 }

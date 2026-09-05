@@ -1,6 +1,5 @@
 package dev.zoenetic.brokenpromises.environment
 
-import dev.zoenetic.brokenpromises.heat.HEAT_SOURCE_BLOCKS
 import dev.zoenetic.brokenpromises.heat.HeatSource
 import dev.zoenetic.brokenpromises.heat.MAX_HEAT_RADIUS
 import dev.zoenetic.brokenpromises.heat.MIN_HEAT_DISTANCE_SQ
@@ -8,15 +7,13 @@ import dev.zoenetic.brokenpromises.heat.Temperature
 import dev.zoenetic.brokenpromises.heat.adjustTemperatureForAltitude
 import dev.zoenetic.brokenpromises.heat.globalHeatSourceState
 import dev.zoenetic.brokenpromises.heat.isHeatSourceBlock
-import dev.zoenetic.brokenpromises.heat.isLitHeatSourceBlock
+import dev.zoenetic.brokenpromises.heat.isLit
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.ChunkPos
-import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
-import java.util.stream.Stream
 
 public data class Conditions(
     val temperature: Temperature,
@@ -46,7 +43,7 @@ public fun ServerPlayer.getConditions(climate: ClimateSample): Conditions {
             for ((packed, power) in chunkSources) {
                 val blockPos = BlockPos.of(packed)
                 val state = chunk.getBlockState(blockPos)
-                if (!state.isHeatSourceBlock() || !state.isLitHeatSourceBlock()) continue
+                if (!state.isHeatSourceBlock() || !state.isLit()) continue
                 sources.add(HeatSource(blockPos, power))
             }
         }
