@@ -17,7 +17,7 @@ import kotlin.math.sqrt
 public val globalHeatSourceState: WeakHashMap<Level, Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>>> =
     WeakHashMap()
 
-internal const val MIN_HEAT_DISTANCE_SQ = 1.0
+internal const val MIN_HEAT_DISTANCE_SQ = 0.25
 internal const val MIN_HEAT_CONTRIBUTION = 0.1
 
 public data class HeatSource(
@@ -26,12 +26,13 @@ public data class HeatSource(
 )
 
 public val HEAT_SOURCE_BLOCKS: Map<Block, Power> by lazy { mapOf(
-        Blocks.CAMPFIRE to Power(25.0),
+        Blocks.CAMPFIRE to Power(30.0),
         Blocks.CANDLE to Power(0.5),
         Blocks.FURNACE to Power(20.0),
-        Blocks.LAVA to Power(60.0),
-        Blocks.TORCH to Power(2.0),
-        Blocks.WALL_TORCH to Power(2.0),
+        Blocks.LAVA to Power(100.0),
+        Blocks.MAGMA_BLOCK to Power(20.0),
+        Blocks.TORCH to Power(3.0),
+        Blocks.WALL_TORCH to Power(3.0),
     )}
 
 internal val MAX_HEAT_RADIUS: Int by lazy {

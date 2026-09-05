@@ -14,11 +14,20 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.phys.Vec3
+import java.util.UUID
 
 public data class Conditions(
-    val temperature: Temperature,
     val precipitation: Precipitation,
+    val temperature: Temperature,
 )
+
+public data class ConditionsSample(
+    val player: UUID,
+    val tick: Long,
+    val conditions: Conditions,
+)
+
+public val environmentalConditionsCache: HashMap<UUID, ConditionsSample> = hashMapOf<UUID, ConditionsSample>()
 
 public fun ServerPlayer.getConditions(climate: ClimateSample): Conditions {
     val level = level()
@@ -26,7 +35,7 @@ public fun ServerPlayer.getConditions(climate: ClimateSample): Conditions {
     val altitude = pos.y - level().seaLevel
     val precipitation = climate.precipitation
     val temperature = adjustTemperatureForAltitude(climate.temperature, altitude)
-    val levelState = globalHeatSourceState[level] ?: return Conditions(temperature, precipitation)
+    val levelState = globalHeatSourceState[level] ?: return Conditions(precipitation, temperature)
     val r = MAX_HEAT_RADIUS
     val minPos = getMinPos(level, pos, r)
     val maxPos = getMaxPos(level, pos, r)
@@ -49,7 +58,7 @@ public fun ServerPlayer.getConditions(climate: ClimateSample): Conditions {
         }
     }
     val heat = sumHeatSources(body, sources.toList())
-    return Conditions(Temperature(temperature.value + heat), precipitation)
+    return Conditions(precipitation, Temperature(temperature.value + heat))
 }
 
 internal fun getMinPos(level: ServerLevel, pos: BlockPos, r: Int): BlockPos {

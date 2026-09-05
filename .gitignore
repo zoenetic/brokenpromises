@@ -18,9 +18,11 @@ runs/
 *.iws
 .vscode/
 out/
+.kotlin/
 
 # OS
 .DS_Store
 
 # Logs
 logs/
+common/logs/

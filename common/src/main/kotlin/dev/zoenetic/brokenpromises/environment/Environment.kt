@@ -1,46 +1,35 @@
 package dev.zoenetic.brokenpromises.environment
 
-import dev.zoenetic.brokenpromises.heat.HEAT_SOURCE_BLOCKS
-import dev.zoenetic.brokenpromises.heat.Power
-import dev.zoenetic.brokenpromises.heat.isHeatSourceBlock
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import net.minecraft.core.BlockPos
-import net.minecraft.core.SectionPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.chunk.LevelChunk
-import java.util.UUID
-import java.util.WeakHashMap
 
 internal const val INTERVAL_TICKS = 20
 
-public val exposureCache: HashMap<UUID, ExposureSample> = hashMapOf<UUID, ExposureSample>()
-
 public fun ServerLevel.tickEnvironment(tick: Long) {
     for (player in getPlayers(LivingEntity::isAlive)) {
-        player.tickEnvironment(tick)
+        val _ = player.tickEnvironment(tick)
     }
     //TODO: Not doing anything with the exposure, yet
 }
 
-internal fun ServerPlayer.tickEnvironment(tick: Long): Exposure {
-    val cached = exposureCache[uuid]
+internal fun ServerPlayer.tickEnvironment(tick: Long): ConditionsSample {
+    val cached = environmentalConditionsCache[uuid]
+    var elapsed = 0L
     if (cached != null) {
-        val elapsed = tick - cached.tick
+        elapsed = tick - cached.tick
         if (elapsed < INTERVAL_TICKS) {
-            return cached.exposure
+            return cached
         }
     }
     val climate = getClimate()
     val conditions = getConditions(climate)
-    val exposure = getExposure(conditions)
-    val sample = ExposureSample(
+    tickVitals(conditions, elapsed)
+    val sample = ConditionsSample(
         this.uuid,
         tick,
-        exposure
+        conditions
     )
-    exposureCache[uuid] = sample
-    return sample.exposure
+    environmentalConditionsCache[uuid] = sample
+    return sample
 }
