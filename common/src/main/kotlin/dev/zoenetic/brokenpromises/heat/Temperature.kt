@@ -1,9 +1,12 @@
 package dev.zoenetic.brokenpromises.heat
 
+import net.minecraft.SharedConstants
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.pow
 
+internal const val DIURNAL_SWING = 8.0
+internal const val WARMEST_TICK = 9000L // 15:00
 internal const val LAPSE_RATE_PER_BLOCK = 0.07
 
 @JvmInline
@@ -20,11 +23,23 @@ public value class Temperature(public val value: Double) {
     }
 }
 
-internal fun adjustTemperatureForAltitude(temperature: Temperature, altitude: Int): Temperature {
+public fun Temperature.adjust(altitude: Int, time: Long): Temperature {
+    return adjustForAltitude(altitude)
+        .adjustForTimeOfDay(time)
+}
+
+public fun Temperature.adjustForAltitude(
+    altitude: Int
+): Temperature {
     val t = if (altitude > 0) {
-        temperature.value - (altitude * LAPSE_RATE_PER_BLOCK)
+        value - (altitude * LAPSE_RATE_PER_BLOCK)
     } else {
-        temperature.value
+        value
     }
     return Temperature(t)
+}
+
+public fun Temperature.adjustForTimeOfDay(time: Long): Temperature {
+    val dayFraction = (time - WARMEST_TICK).toDouble() / SharedConstants.TICKS_PER_GAME_DAY
+    return Temperature(value + DIURNAL_SWING * cos(2.0 * PI * dayFraction))
 }

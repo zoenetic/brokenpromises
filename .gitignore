@@ -19,7 +19,6 @@ runs/
 .vscode/
 out/
 .kotlin/
-/.editorconfig
 
 # OS
 .DS_Store

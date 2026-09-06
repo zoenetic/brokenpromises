@@ -24,6 +24,10 @@ public fun addDevWatcher(player: ServerPlayer) {
     ) addWatcher(player.uuid)
 }
 
+public fun removeWatcher(uuid: UUID) {
+    watchers.remove(uuid)
+}
+
 public val watchCommand: LiteralArgumentBuilder<CommandSourceStack> =
     Commands.literal("watch")
         .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))

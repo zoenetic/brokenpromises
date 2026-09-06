@@ -1,19 +1,12 @@
 package dev.zoenetic.brokenpromises.environment
 
-import dev.zoenetic.brokenpromises.heat.HeatSource
-import dev.zoenetic.brokenpromises.heat.MAX_HEAT_RADIUS
-import dev.zoenetic.brokenpromises.heat.Temperature
-import dev.zoenetic.brokenpromises.heat.adjustTemperatureForAltitude
-import dev.zoenetic.brokenpromises.heat.globalHeatSourceState
-import dev.zoenetic.brokenpromises.heat.isHeatSourceBlock
-import dev.zoenetic.brokenpromises.heat.isLit
-import dev.zoenetic.brokenpromises.heat.sumHeatSources
+import dev.zoenetic.brokenpromises.heat.*
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.ChunkPos
-import java.util.UUID
+import java.util.*
 
 public data class Conditions(
     val precipitation: Precipitation,
@@ -26,14 +19,16 @@ public data class ConditionsSample(
     val conditions: Conditions,
 )
 
-public val environmentalConditionsCache: HashMap<UUID, ConditionsSample> = hashMapOf<UUID, ConditionsSample>()
+public val environmentalConditionsCache: HashMap<UUID, ConditionsSample> =
+    hashMapOf()
 
 public fun ServerPlayer.getConditions(climate: ClimateSample): Conditions {
     val level = level()
+    val time = level.overworldClockTime
     val pos = blockPosition()
     val altitude = pos.y - level().seaLevel
     val precipitation = climate.precipitation
-    val temperature = adjustTemperatureForAltitude(climate.temperature, altitude)
+    val temperature = climate.temperature.adjust(altitude, time)
     val levelState = globalHeatSourceState[level] ?: return Conditions(precipitation, temperature)
     val r = MAX_HEAT_RADIUS
     val minPos = getMinPos(level, pos, r)
@@ -58,6 +53,10 @@ public fun ServerPlayer.getConditions(climate: ClimateSample): Conditions {
     }
     val heat = sumHeatSources(body, sources.toList())
     return Conditions(precipitation, Temperature(temperature.value + heat))
+}
+
+public fun dropConditionsCache(uuid: UUID) {
+    environmentalConditionsCache.remove(uuid)
 }
 
 internal fun getMinPos(level: ServerLevel, pos: BlockPos, r: Int): BlockPos {

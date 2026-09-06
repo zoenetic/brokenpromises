@@ -2,6 +2,7 @@ package dev.zoenetic.brokenpromises.neoforge
 
 import dev.zoenetic.brokenpromises.BrokenPromises
 import dev.zoenetic.brokenpromises.commands.*
+import dev.zoenetic.brokenpromises.environment.dropConditionsCache
 import dev.zoenetic.brokenpromises.environment.tickEnvironment
 import dev.zoenetic.brokenpromises.heat.dropHeatSourceState
 import dev.zoenetic.brokenpromises.heat.rebuildHeatSourceState
@@ -32,6 +33,10 @@ public class BrokenPromisesNeoForge(modBus: IEventBus) {
         }
         bus.addListener(PlayerEvent.PlayerLoggedInEvent::class.java) { event ->
             (event.entity as? ServerPlayer)?.let(::addDevWatcher)
+        }
+        bus.addListener(PlayerEvent.PlayerLoggedOutEvent::class.java) { event ->
+            (event.entity.uuid).let(::removeWatcher)
+            (event.entity.uuid).let(::dropConditionsCache)
         }
         bus.addListener(ChunkEvent.Load::class.java) { event ->
             val chunk = event.chunk

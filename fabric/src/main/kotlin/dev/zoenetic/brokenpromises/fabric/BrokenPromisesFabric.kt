@@ -1,12 +1,9 @@
 package dev.zoenetic.brokenpromises.fabric
 
 import dev.zoenetic.brokenpromises.BrokenPromises
-import dev.zoenetic.brokenpromises.commands.addDevWatcher
-import dev.zoenetic.brokenpromises.commands.rootCommand
-import dev.zoenetic.brokenpromises.commands.setBodyTemperatureCommand
-import dev.zoenetic.brokenpromises.commands.watchCommand
+import dev.zoenetic.brokenpromises.commands.*
+import dev.zoenetic.brokenpromises.environment.dropConditionsCache
 import dev.zoenetic.brokenpromises.environment.tickEnvironment
-import dev.zoenetic.brokenpromises.commands.tickWatchers
 import dev.zoenetic.brokenpromises.heat.dropHeatSourceState
 import dev.zoenetic.brokenpromises.heat.rebuildHeatSourceState
 import net.fabricmc.api.ModInitializer
@@ -19,13 +16,19 @@ public object BrokenPromisesFabric : ModInitializer {
 
     override fun onInitialize() {
         BrokenPromises.init(FabricPlatform)
-        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ -> dispatcher.register(
-            rootCommand
-                .then(setBodyTemperatureCommand)
-                .then(watchCommand)
-        ) }
+        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+            dispatcher.register(
+                rootCommand
+                    .then(setBodyTemperatureCommand)
+                    .then(watchCommand)
+            )
+        }
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
             addDevWatcher(handler.player)
+        }
+        ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
+            removeWatcher(handler.player.uuid)
+            dropConditionsCache(handler.player.uuid)
         }
         ServerChunkEvents.CHUNK_LOAD.register { _, chunk, _ ->
             chunk.rebuildHeatSourceState()
