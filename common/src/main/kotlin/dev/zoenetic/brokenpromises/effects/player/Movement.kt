@@ -2,7 +2,7 @@ package dev.zoenetic.brokenpromises.effects.player
 
 import dev.zoenetic.brokenpromises.BrokenPromises.MOD_ID
 import dev.zoenetic.brokenpromises.vitals.NORMAL_BODY_TEMPERATURE
-import dev.zoenetic.brokenpromises.vitals.getVitals
+import dev.zoenetic.brokenpromises.vitals.vitals
 import net.minecraft.resources.Identifier
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.ai.attributes.AttributeModifier
@@ -39,7 +39,7 @@ private val BODY_TEMPERATURE_SPEED_REDUCTION =
 
 public fun ServerPlayer.tickMovementSpeedReduction() {
     val penalty =
-        speedPenalty(getVitals().temperature.value)
+        speedPenalty(vitals().temperature.value)
     val attribute = getAttribute(MOVEMENT_SPEED) ?: return
     if (penalty == 0.0) {
         attribute.removeModifier(

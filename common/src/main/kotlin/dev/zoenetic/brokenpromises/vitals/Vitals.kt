@@ -4,8 +4,8 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.zoenetic.brokenpromises.BrokenPromises
 import dev.zoenetic.brokenpromises.environment.Conditions
-import dev.zoenetic.brokenpromises.heat.getInMedium
-import dev.zoenetic.brokenpromises.heat.getOnSurface
+import dev.zoenetic.brokenpromises.heat.getInConductiveMedium
+import dev.zoenetic.brokenpromises.heat.getOnConductiveSurface
 import io.netty.buffer.ByteBuf
 import net.minecraft.SharedConstants
 import net.minecraft.network.codec.ByteBufCodecs
@@ -67,33 +67,57 @@ public fun ServerPlayer.tickVitals(
     conditions: Conditions,
     elapsed: Long
 ) {
-    val currentVitals = getVitals()
-    if (currentVitals.temperature.value == conditions.temperature.value) return
-    val isWarming =
-        currentVitals.temperature.value < conditions.temperature.value
-    val inMedium = getInMedium()?.conductance ?: 1.0
-    val onSurface = getOnSurface()?.conductance ?: 1.0
-    val conductance = inMedium * onSurface
-    val halfLifeSeconds =
-        if (isWarming) BODY_WARMS_AT / conductance else BODY_COOLS_AT / conductance
-    val ambient = conditions.temperature.value
-    val target =
-        if (ambient !in 20.0..30.0) ambient else NORMAL_BODY_TEMPERATURE
+    val target = targetTemperature(conditions.temperature.value)
+    val vitals = vitals()
+    val current = vitals.temperature.value
+    if (current == target) return
+    val isWarming = current < target
+    val inMedium = getInConductiveMedium()?.conductance
+    val onSurface = getOnConductiveSurface()?.conductance
+    val halfLifeSeconds = effectiveHalfLife(isWarming, inMedium, onSurface)
     val newBodyTemperature = BodyTemperature(
         approach(
-            currentVitals.temperature.value,
+            current,
             target,
             elapsed,
             halfLifeSeconds
         )
     )
     val newVitals =
-        currentVitals.copy(temperature = newBodyTemperature)
+        vitals.copy(temperature = newBodyTemperature)
     BrokenPromises.platform.setVitals(this, newVitals)
     return
 }
 
-public fun ServerPlayer.getVitals(): Vitals {
+public fun effectiveHalfLife(
+    isWarming: Boolean,
+    medium: Double?,
+    surface: Double?
+): Double {
+    val medium = medium ?: 1.0
+    val surface = surface ?: 1.0
+    val conductance = medium * surface
+    return if (isWarming) {
+        BODY_WARMS_AT / conductance
+    } else {
+        BODY_COOLS_AT / conductance
+    }
+}
+
+// Thermoneutral band: inside it, regulation holds the core at normal regardless of ambient.
+public const val COMFORT_LOW: Double = 20.0
+public const val COMFORT_HIGH: Double = 30.0
+// Outside the band, this fraction of the excess reaches the core. Regulation fights heat better than cold.
+public const val COLD_LEAKAGE: Double = 0.5
+public const val HEAT_LEAKAGE: Double = 0.2
+
+internal fun targetTemperature(ambient: Double): Double = when {
+    ambient < COMFORT_LOW -> NORMAL_BODY_TEMPERATURE - COLD_LEAKAGE * (COMFORT_LOW - ambient)
+    ambient > COMFORT_HIGH -> NORMAL_BODY_TEMPERATURE + HEAT_LEAKAGE * (ambient - COMFORT_HIGH)
+    else -> NORMAL_BODY_TEMPERATURE
+}
+
+public fun ServerPlayer.vitals(): Vitals {
     return BrokenPromises.platform.vitals(this)
 }
 
