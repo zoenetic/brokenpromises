@@ -1,7 +1,8 @@
 package dev.zoenetic.brokenpromises.environment
 
-import dev.zoenetic.brokenpromises.vitals.tickVitals
+import dev.zoenetic.brokenpromises.effects.player.tickBreath
 import dev.zoenetic.brokenpromises.effects.player.tickMovementSpeedReduction
+import dev.zoenetic.brokenpromises.vitals.tickVitals
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.LivingEntity
@@ -12,7 +13,6 @@ public fun ServerLevel.tickEnvironment(tick: Long) {
     for (player in getPlayers(LivingEntity::isAlive)) {
         val _ = player.tickEnvironment(tick)
     }
-    //TODO: Not doing anything with the exposure, yet
 }
 
 internal fun ServerPlayer.tickEnvironment(tick: Long): ConditionsSample {
@@ -28,6 +28,7 @@ internal fun ServerPlayer.tickEnvironment(tick: Long): ConditionsSample {
     val conditions = getConditions(climate)
     tickVitals(conditions, elapsed)
     tickMovementSpeedReduction()
+    tickBreath(conditions)
     val sample = ConditionsSample(
         this.uuid,
         tick,

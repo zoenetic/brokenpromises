@@ -2,6 +2,8 @@ package dev.zoenetic.brokenpromises.vitals
 
 import dev.zoenetic.brokenpromises.heat.ConductiveMedium
 import dev.zoenetic.brokenpromises.heat.ConductiveSurface
+import dev.zoenetic.brokenpromises.environment.Wind
+import net.minecraft.world.phys.Vec3
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -123,16 +125,12 @@ class VitalsTests {
             BODY_WARMS_AT,
             effectiveHalfLife(
                 isWarming = true,
-                medium = null,
-                surface = null
             )
         )
         assertEquals(
             BODY_COOLS_AT,
             effectiveHalfLife(
                 isWarming = false,
-                medium = null,
-                surface = null
             )
         )
     }
@@ -142,13 +140,9 @@ class VitalsTests {
         assertNotEquals(
             effectiveHalfLife(
                 isWarming = true,
-                medium = null,
-                surface = null
             ),
             effectiveHalfLife(
                 isWarming = false,
-                medium = null,
-                surface = null
             ),
         )
     }
@@ -161,7 +155,6 @@ class VitalsTests {
             effectiveHalfLife(
                 isWarming = false,
                 medium = water,
-                surface = null
             )
         )
         assertEquals(
@@ -169,7 +162,6 @@ class VitalsTests {
             effectiveHalfLife(
                 isWarming = true,
                 medium = water,
-                surface = null
             )
         )
     }
@@ -181,7 +173,6 @@ class VitalsTests {
             BODY_COOLS_AT / metal,
             effectiveHalfLife(
                 isWarming = false,
-                medium = null,
                 surface = metal
             )
         )
@@ -209,7 +200,6 @@ class VitalsTests {
             effectiveHalfLife(
                 isWarming = true,
                 medium = lava,
-                surface = null
             ) < 1.0
         )
     }
@@ -225,7 +215,11 @@ class VitalsTests {
     fun `target is continuous at both band edges`() {
         val epsilon = 1e-6
         assertEquals(targetTemperature(COMFORT_LOW), targetTemperature(COMFORT_LOW - epsilon), 1e-3)
-        assertEquals(targetTemperature(COMFORT_HIGH), targetTemperature(COMFORT_HIGH + epsilon), 1e-3)
+        assertEquals(
+            targetTemperature(COMFORT_HIGH),
+            targetTemperature(COMFORT_HIGH + epsilon),
+            1e-3
+        )
     }
 
     @Test
@@ -241,5 +235,40 @@ class VitalsTests {
         val coldDrop = NORMAL_BODY_TEMPERATURE - targetTemperature(COMFORT_LOW - 10.0)
         val heatRise = targetTemperature(COMFORT_HIGH + 10.0) - NORMAL_BODY_TEMPERATURE
         assertTrue(coldDrop > heatRise)
+    }
+
+    @Test
+    fun `calm wind has unit conductance and leaves the half life unchanged`() {
+        assertEquals(1.0, Wind.CALM.conductance, 1e-9)
+        assertEquals(BODY_COOLS_AT, effectiveHalfLife(isWarming = false, wind = Wind.CALM.conductance), 1e-9)
+    }
+
+    @Test
+    fun `wind conductance grows linearly with speed`() {
+        val fiveMetresPerSecond = Wind(Vec3(5.0, 0.0, 0.0))
+        assertEquals(1.0 + Wind.CHILL * 5.0, fiveMetresPerSecond.conductance, 1e-9)
+        assertEquals(BODY_COOLS_AT / (1.0 + Wind.CHILL * 5.0),
+            effectiveHalfLife(isWarming = false, wind = fiveMetresPerSecond.conductance), 1e-9)
+    }
+
+    @Test
+    fun `wind conductance depends on speed, not direction`() {
+        val east = Wind(Vec3(3.0, 0.0, 0.0))
+        val north = Wind(Vec3(0.0, 0.0, -3.0))
+        val diagonal = Wind(Vec3(3.0 / Math.sqrt(2.0), 0.0, 3.0 / Math.sqrt(2.0)))
+        assertEquals(east.conductance, north.conductance, 1e-9)
+        assertEquals(east.conductance, diagonal.conductance, 1e-9)
+    }
+
+    @Test
+    fun `wind multiplies with medium and surface`() {
+        val water = ConductiveMedium.WATER.conductance
+        val metal = ConductiveSurface.METAL.conductance
+        val wind = Wind(Vec3(5.0, 0.0, 0.0)).conductance
+        assertEquals(
+            BODY_COOLS_AT / (water * metal * wind),
+            effectiveHalfLife(isWarming = false, medium = water, surface = metal, wind = wind),
+            1e-9,
+        )
     }
 }

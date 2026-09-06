@@ -15,7 +15,7 @@ public abstract class LevelChunkMixin {
     private void brokenpromises$afterSetBlockState(BlockPos pos, BlockState state, int flags,
                                                    CallbackInfoReturnable<BlockState> cir) {
         if (cir.getReturnValue() == null) return;
-        var chunk = (LevelChunk)(Object)this;
+        var chunk = (LevelChunk) (Object) this;
         if (chunk.getLevel().isClientSide()) return;
         SourcesKt.updateStateForSingleHeatSource(chunk, pos, state);
     }

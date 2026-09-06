@@ -17,8 +17,8 @@ import kotlin.math.sqrt
 public val globalHeatSourceState: WeakHashMap<Level, Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>>> =
     WeakHashMap()
 
-internal const val MIN_HEAT_DISTANCE_SQ = 0.25
 internal const val MIN_HEAT_CONTRIBUTION = 0.1
+internal const val HEAT_SOURCE_SOFTENING = 1.0
 
 public data class HeatSource(
     val position: BlockPos,
@@ -29,7 +29,7 @@ public val HEAT_SOURCE_BLOCKS: Map<Block, Power> by lazy {
     mapOf(
         Blocks.CAMPFIRE to Power(30.0),
         Blocks.CANDLE to Power(0.5),
-        Blocks.FIRE to Power(30.0),
+        Blocks.FIRE to Power(40.0),
         Blocks.FURNACE to Power(20.0),
         Blocks.LAVA to Power(100.0),
         Blocks.MAGMA_BLOCK to Power(20.0),
@@ -81,7 +81,13 @@ internal fun LevelChunk.getHeatSources(): Long2ObjectOpenHashMap<Power> {
                     val state = section.getBlockState(localX, localY, localZ)
                     if (!state.isHeatSourceBlock()) continue
                     val power = HEAT_SOURCE_BLOCKS[state.block] ?: continue
-                    chunkSources.put(BlockPos.asLong(originX + localX, originY + localY, originZ + localZ), power)
+                    chunkSources.put(
+                        BlockPos.asLong(
+                            originX + localX,
+                            originY + localY,
+                            originZ + localZ
+                        ), power
+                    )
                 }
             }
         }
@@ -116,7 +122,8 @@ internal fun sumHeatSources(body: Vec3, sources: List<HeatSource>): Double {
     var heat = 0.0
     for ((position, power) in sources) {
         val distanceSq = body.distanceToSqr(Vec3.atCenterOf(position))
-        heat += power.value / distanceSq.coerceAtLeast(MIN_HEAT_DISTANCE_SQ)
+        val sq = distanceSq + HEAT_SOURCE_SOFTENING
+        heat += power.value / sq
     }
     return heat
 }

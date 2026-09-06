@@ -8,7 +8,7 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.resources.Identifier
-import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.player.Player
 
 public object FabricPlatform : Platform {
     override val name: String = "Fabric"
@@ -35,11 +35,11 @@ public object FabricPlatform : Platform {
                 )
         }
 
-    override fun vitals(player: ServerPlayer): Vitals =
+    override fun vitals(player: Player): Vitals =
         player.getAttachedOrCreate(VITALS)
 
     override fun setVitals(
-        player: ServerPlayer,
+        player: Player,
         value: Vitals
     ) {
         player.setAttached(VITALS, value)

@@ -11,12 +11,13 @@ import net.minecraft.SharedConstants
 import net.minecraft.network.codec.ByteBufCodecs
 import net.minecraft.network.codec.StreamCodec
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.player.Player
 import kotlin.math.pow
 
 internal const val NORMAL_BODY_TEMPERATURE = 37.0
 
-public const val BODY_COOLS_AT: Double = 20.0 * 60.0
-public const val BODY_WARMS_AT: Double = 10.0 * 60.0
+public const val BODY_COOLS_AT: Double = 30.0 * 60.0
+public const val BODY_WARMS_AT: Double = 15.0 * 60.0
 
 public data class Vitals(val temperature: BodyTemperature) {
     public companion object {
@@ -74,7 +75,8 @@ public fun ServerPlayer.tickVitals(
     val isWarming = current < target
     val inMedium = getInConductiveMedium()?.conductance
     val onSurface = getOnConductiveSurface()?.conductance
-    val halfLifeSeconds = effectiveHalfLife(isWarming, inMedium, onSurface)
+    val fromWind = conditions.wind.conductance
+    val halfLifeSeconds = effectiveHalfLife(isWarming, inMedium, onSurface, fromWind)
     val newBodyTemperature = BodyTemperature(
         approach(
             current,
@@ -91,12 +93,14 @@ public fun ServerPlayer.tickVitals(
 
 public fun effectiveHalfLife(
     isWarming: Boolean,
-    medium: Double?,
-    surface: Double?
+    medium: Double? = null,
+    surface: Double? = null,
+    wind: Double? = null,
 ): Double {
     val medium = medium ?: 1.0
     val surface = surface ?: 1.0
-    val conductance = medium * surface
+    val wind = wind ?: 1.0
+    val conductance = medium * surface * wind
     return if (isWarming) {
         BODY_WARMS_AT / conductance
     } else {
@@ -104,10 +108,9 @@ public fun effectiveHalfLife(
     }
 }
 
-// Thermoneutral band: inside it, regulation holds the core at normal regardless of ambient.
 public const val COMFORT_LOW: Double = 20.0
 public const val COMFORT_HIGH: Double = 30.0
-// Outside the band, this fraction of the excess reaches the core. Regulation fights heat better than cold.
+
 public const val COLD_LEAKAGE: Double = 0.5
 public const val HEAT_LEAKAGE: Double = 0.2
 
@@ -117,7 +120,7 @@ internal fun targetTemperature(ambient: Double): Double = when {
     else -> NORMAL_BODY_TEMPERATURE
 }
 
-public fun ServerPlayer.vitals(): Vitals {
+public fun Player.vitals(): Vitals {
     return BrokenPromises.platform.vitals(this)
 }
 

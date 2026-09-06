@@ -1,12 +1,12 @@
 package dev.zoenetic.brokenpromises.environment
 
+import dev.zoenetic.brokenpromises.heat.HEAT_SOURCE_SOFTENING
 import dev.zoenetic.brokenpromises.heat.HeatSource
-import dev.zoenetic.brokenpromises.heat.MIN_HEAT_DISTANCE_SQ
 import dev.zoenetic.brokenpromises.heat.Power
 import dev.zoenetic.brokenpromises.heat.sumHeatSources
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
-import kotlin.math.sqrt
+import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -46,7 +46,7 @@ class ConditionsTests {
     }
 
     @Test
-    fun `two identical heat sources at equal distance (above the clamp distance) give exactly double power`() {
+    fun `two identical heat sources at equal distance give exactly double power`() {
         val power = Power(10.0)
         val a = HeatSource(BlockPos(3, 0, 0), power)
         val b = HeatSource(BlockPos(0, 0, 3), power)
@@ -61,44 +61,37 @@ class ConditionsTests {
     }
 
     @Test
-    fun `a source closer than the clamp distance contributes as if at the clamp distance`() {
+    fun `a source at zero distance contributes exactly power over the softening`() {
         val power = Power(10.0)
-        val expected =
-            2 * power.value / MIN_HEAT_DISTANCE_SQ
-        val a = HeatSource(BlockPos(0, 0, 0), power)
-        val b = HeatSource(BlockPos(0, 0, 0), power)
-        assertEquals(
-            expected,
-            sumHeatSources(body, listOf(a, b)),
-            1e-9
-        )
+        val atBody =
+            listOf(HeatSource(BlockPos(0, 0, 0), power))   // block centre coincides with body
+        assertEquals(power.value / HEAT_SOURCE_SOFTENING, sumHeatSources(body, atBody), 1e-9)
     }
 
     @Test
-    fun `at the clamp distance and inside it give the same contribution`() {
+    fun `contribution keeps rising all the way in, with no plateau`() {
+        val source = listOf(HeatSource(BlockPos(0, 0, 0), Power(10.0)))
+        val distances = listOf(2.0, 1.0, 0.5, 0.25, 0.1, 0.0)
+        val heats = distances.map { d -> sumHeatSources(Vec3(0.5, 0.5, 0.5 + d), source) }
+        for (i in 1 until heats.size) {
+            assertTrue(
+                heats[i] > heats[i - 1],
+                "at ${distances[i]} (${heats[i]}) should exceed at ${distances[i - 1]} (${heats[i - 1]})"
+            )
+        }
+    }
+
+    @Test
+    fun `far from the source the falloff is inverse square`() {
         val power = Power(10.0)
-        val source =
-            listOf(HeatSource(BlockPos(0, 0, 0), power))
-        val clampDistance = sqrt(MIN_HEAT_DISTANCE_SQ)
-        val atClamp = sumHeatSources(
-            Vec3(
-                0.5,
-                0.5,
-                0.5 + clampDistance
-            ), source
-        )
-        val insideClamp = sumHeatSources(
-            Vec3(
-                0.5,
-                0.5,
-                0.5 + clampDistance / 2
-            ), source
-        )
-        assertEquals(atClamp, insideClamp, 1e-9)
-        assertEquals(
-            power.value / MIN_HEAT_DISTANCE_SQ,
-            atClamp,
-            1e-9
+        val source = listOf(HeatSource(BlockPos(0, 0, 0), power))
+        val distance = 20.0
+        val softened = sumHeatSources(Vec3(0.5, 0.5, 0.5 + distance), source)
+        val inverseSquare = power.value / (distance * distance)
+        val relativeError = abs(softened - inverseSquare) / inverseSquare
+        assertTrue(
+            relativeError < 0.005,
+            "at $distance blocks softening should be negligible; relative error $relativeError"
         )
     }
 }

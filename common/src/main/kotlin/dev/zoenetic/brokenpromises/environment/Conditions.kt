@@ -1,5 +1,6 @@
 package dev.zoenetic.brokenpromises.environment
 
+import dev.zoenetic.brokenpromises.BrokenPromises
 import dev.zoenetic.brokenpromises.heat.*
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
@@ -9,8 +10,9 @@ import net.minecraft.world.level.ChunkPos
 import java.util.*
 
 public data class Conditions(
-    val precipitation: Precipitation,
+    val humidity: Humidity,
     val temperature: Temperature,
+    val wind: Wind,
 )
 
 public data class ConditionsSample(
@@ -27,9 +29,12 @@ public fun ServerPlayer.getConditions(climate: ClimateSample): Conditions {
     val time = level.overworldClockTime
     val pos = blockPosition()
     val altitude = pos.y - level().seaLevel
-    val precipitation = climate.precipitation
-    val temperature = climate.temperature.adjust(altitude, time)
-    val levelState = globalHeatSourceState[level] ?: return Conditions(precipitation, temperature)
+    val sky = getShelter().sky
+    val humidity = climate.humidity
+    val temperature = climate.temperature.adjust(altitude, time, sky, humidity)
+    val wind = climate.wind
+    val levelState =
+        globalHeatSourceState[level] ?: return Conditions(humidity, temperature, wind)
     val r = MAX_HEAT_RADIUS
     val minPos = getMinPos(level, pos, r)
     val maxPos = getMaxPos(level, pos, r)
@@ -52,7 +57,14 @@ public fun ServerPlayer.getConditions(climate: ClimateSample): Conditions {
         }
     }
     val heat = sumHeatSources(body, sources.toList())
-    return Conditions(precipitation, Temperature(temperature.value + heat))
+    if (BrokenPromises.platform.isDevelopmentEnvironment)
+        BrokenPromises.LOGGER.info(
+            "conditions: base={} sources={} heat={}",
+            temperature.value,
+            sources.size,
+            heat
+        )
+    return Conditions(humidity, Temperature(temperature.value + heat), wind)
 }
 
 public fun dropConditionsCache(uuid: UUID) {

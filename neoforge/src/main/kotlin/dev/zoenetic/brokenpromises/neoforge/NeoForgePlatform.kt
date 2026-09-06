@@ -3,7 +3,7 @@ package dev.zoenetic.brokenpromises.neoforge
 import dev.zoenetic.brokenpromises.BrokenPromises.MOD_ID
 import dev.zoenetic.brokenpromises.platform.Platform
 import dev.zoenetic.brokenpromises.vitals.Vitals
-import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.player.Player
 import net.neoforged.fml.loading.FMLLoader
 import net.neoforged.neoforge.attachment.AttachmentType
 import net.neoforged.neoforge.registries.DeferredHolder
@@ -35,11 +35,11 @@ public object NeoForgePlatform : Platform {
                 .build()
         })
 
-    override fun vitals(player: ServerPlayer): Vitals =
+    override fun vitals(player: Player): Vitals =
         player.getData(VITALS)
 
     override fun setVitals(
-        player: ServerPlayer,
+        player: Player,
         value: Vitals
     ) {
         player.setData(VITALS, value)
