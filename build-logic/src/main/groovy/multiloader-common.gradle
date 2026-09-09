@@ -3,6 +3,18 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 
+def modProject = project.parent
+['mod_id', 'mod_name', 'mod_description'].each { key ->
+    if (modProject == null || !modProject.hasProperty(key)) {
+        throw new GradleException(
+                "${project.path} applies multiloader-common but its parent project " +
+                        "does not define '${key}'. Add it to the mod's gradle.properties.")
+    }
+    ext[key] = modProject.property(key)
+}
+
+description = mod_description
+
 base {
     archivesName = "${mod_id}-${project.name}-${minecraft_version}"
 }
@@ -17,7 +29,7 @@ kotlin {
         progressiveMode = true
         freeCompilerArgs.addAll('-Xjvm-default=all', '-Xreturn-value-checker=full')
     }
-    explicitApiWarning()
+    explicitApi()
 }
 
 jar {
@@ -49,9 +61,10 @@ processResources {
             'mod_name'                     : mod_name,
             'mod_author'                   : mod_author,
             'mod_id'                       : mod_id,
+            'mod_namespace'                : mod_namespace,
             'license'                      : license,
             'credits'                      : credits,
-            'description'                  : project.description,
+            'description'                  : mod_description,
             'java_version'                 : java_version
     ]
 

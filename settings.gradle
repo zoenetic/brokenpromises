@@ -23,6 +23,7 @@ plugins {
 
 rootProject.name = 'brokenpromises'
 includeBuild('build-logic')
-include('common')
-include('fabric')
-include('neoforge')
+
+include('survival:common')
+include('survival:fabric')
+include('survival:neoforge')
