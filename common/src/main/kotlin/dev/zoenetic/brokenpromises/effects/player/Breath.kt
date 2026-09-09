@@ -1,6 +1,6 @@
 package dev.zoenetic.brokenpromises.effects.player
 
-import dev.zoenetic.brokenpromises.environment.Conditions
+import dev.zoenetic.brokenpromises.environment.ChunkConditions
 import dev.zoenetic.brokenpromises.heat.Temperature
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.server.level.ServerPlayer
@@ -8,7 +8,7 @@ import net.minecraft.server.level.ServerPlayer
 public const val BREATH_VISIBLE_BELOW: Double = 8.0
 public const val HUMIDITY_TO_BUMP_BREATH_VISIBLE_AT: Double = 0.5
 
-public fun ServerPlayer.tickBreath(conditions: Conditions) {
+public fun ServerPlayer.tickBreath(conditions: ChunkConditions) {
     if (isUnderWater) return
     val humidity = conditions.humidity
     val temperature = if (humidity.value >= HUMIDITY_TO_BUMP_BREATH_VISIBLE_AT) {

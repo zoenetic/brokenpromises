@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
     @ModifyReturnValue(method = "canFreeze", at = @At("RETURN"))
-    private boolean brokenpromises$playersDontFreeze(boolean original) {
+    private boolean brokenpromises$canFreeze(boolean original) {
         if ((Object) this instanceof Player) {
             return false;
         }

@@ -2,7 +2,6 @@ package dev.zoenetic.brokenpromises.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.zoenetic.brokenpromises.effects.player.ShiverState;
-import dev.zoenetic.brokenpromises.effects.player.ShiveringKt;
 import dev.zoenetic.brokenpromises.vitals.VitalsKt;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -23,9 +22,7 @@ public class LivingEntityRendererMixin {
     private void brokenpromises$afterExtractRenderState(LivingEntity entity, LivingEntityRenderState state, float partialTicks, CallbackInfo ci) {
         if (entity instanceof Player player) {
             var vitals = VitalsKt.vitals(player);
-            var bodyTemperature = vitals.getTemperature();
-            var shiver = ShiveringKt.shiverIntensity(bodyTemperature.getValue());
-            ((ShiverState) state).brokenpromises$setShiver(shiver);
+            ((ShiverState) state).brokenpromises$setShiver(vitals);
         }
     }
 

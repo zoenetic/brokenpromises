@@ -1,7 +1,10 @@
 package dev.zoenetic.brokenpromises.mixin;
 
 import dev.zoenetic.brokenpromises.effects.player.ShiverState;
+import dev.zoenetic.brokenpromises.effects.player.ShiveringKt;
+import dev.zoenetic.brokenpromises.vitals.Vitals;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -16,7 +19,7 @@ public class LivingEntityRenderStateMixin implements ShiverState {
     }
 
     @Override
-    public void brokenpromises$setShiver(double shiver) {
-        brokenpromises$shiver = shiver;
+    public void brokenpromises$setShiver(@NonNull Vitals vitals) {
+        brokenpromises$shiver = ShiveringKt.shiverIntensity(vitals);
     }
 }

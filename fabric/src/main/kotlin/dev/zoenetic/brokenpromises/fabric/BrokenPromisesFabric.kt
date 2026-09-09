@@ -3,9 +3,6 @@ package dev.zoenetic.brokenpromises.fabric
 import dev.zoenetic.brokenpromises.BrokenPromises
 import dev.zoenetic.brokenpromises.commands.*
 import dev.zoenetic.brokenpromises.environment.dropConditionsCache
-import dev.zoenetic.brokenpromises.environment.tickEnvironment
-import dev.zoenetic.brokenpromises.heat.dropHeatSourceState
-import dev.zoenetic.brokenpromises.heat.rebuildHeatSourceState
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents
@@ -15,7 +12,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 public object BrokenPromisesFabric : ModInitializer {
 
     override fun onInitialize() {
-        BrokenPromises.init(FabricPlatform)
+        val bp = BrokenPromises.init(FabricPlatform)
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(
                 rootCommand
@@ -31,16 +28,16 @@ public object BrokenPromisesFabric : ModInitializer {
             dropConditionsCache(handler.player.uuid)
         }
         ServerChunkEvents.CHUNK_LOAD.register { _, chunk, _ ->
-            chunk.rebuildHeatSourceState()
+            bp.chunks.heatSources.rebuildChunk(chunk)
         }
         ServerChunkEvents.CHUNK_UNLOAD.register { _, chunk ->
-            chunk.dropHeatSourceState()
+            bp.chunks.heatSources.dropChunk(chunk)
         }
         ServerTickEvents.END_LEVEL_TICK.register { level ->
-            level.tickEnvironment(level.gameTime)
+            bp.players.tick()
         }
-        ServerTickEvents.END_SERVER_TICK.register { server ->
-            server.tickWatchers(server.overworld().gameTime)
+        ServerTickEvents.END_SERVER_TICK.register { _ ->
+            bp.servers.tick()
         }
     }
 }

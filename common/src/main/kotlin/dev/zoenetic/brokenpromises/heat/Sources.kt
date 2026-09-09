@@ -3,6 +3,7 @@ package dev.zoenetic.brokenpromises.heat
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
+import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
@@ -14,18 +15,82 @@ import java.util.*
 import kotlin.math.ceil
 import kotlin.math.sqrt
 
-public val globalHeatSourceState: WeakHashMap<Level, Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>>> =
-    WeakHashMap()
-
 internal const val MIN_HEAT_CONTRIBUTION = 0.1
 internal const val HEAT_SOURCE_SOFTENING = 1.0
 
-public data class HeatSource(
-    val position: BlockPos,
-    val power: Power,
-)
+public class HeatSources(
+    public val cache: WeakHashMap<Level, Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>>>
+) {
+    public fun getOrPutLevel(level: Level): Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>> {
+        return cache.getOrPut(level) { Long2ObjectOpenHashMap() }
+    }
 
-public val HEAT_SOURCE_BLOCKS: Map<Block, Power> by lazy {
+    public fun getOrPutChunk(level: Level, pos: ChunkPos): Long2ObjectOpenHashMap<Power> {
+        val level = getOrPutLevel(level)
+        return level.getOrPut(pos.pack()) { Long2ObjectOpenHashMap() }
+    }
+
+    public fun rebuildChunk(chunk: LevelChunk) {
+        val level = getOrPutLevel(chunk.level)
+        val sources = chunk.getHeatSources()
+        level.put(chunk.pos.pack(), sources)
+    }
+
+    public fun dropChunk(chunk: LevelChunk) {
+        val level = chunk.level
+        val sources = cache[level] ?: return
+        sources.remove(chunk.pos.pack())
+    }
+
+    public fun updateOne(chunk: LevelChunk, pos: BlockPos, newState: BlockState) {
+        val power = HEAT_SOURCE_BLOCKS[newState.block] ?: return this.dropOne(chunk, pos)
+        val source = HeatSource(pos, power)
+        getOrPutOne(chunk, source)
+    }
+
+    public fun getOrPutOne(chunk: LevelChunk, source: HeatSource) {
+        val level = chunk.level
+        val pos = source.position
+        val power = source.power
+        val chunkSources = getOrPutChunk(level, chunk.pos)
+        chunkSources.put(pos.asLong(), power)
+    }
+
+    public fun dropOne(chunk: LevelChunk, blockPos: BlockPos) {
+        val levelSources = cache[chunk.level] ?: return
+        val chunkSources = levelSources[chunk.pos.pack()] ?: return
+        chunkSources.remove(blockPos.asLong())
+    }
+
+    public fun tick() {
+        TODO()
+    }
+
+    public companion object {
+        public fun new(): HeatSources {
+            return HeatSources(
+                WeakHashMap<Level, Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>>>()
+            )
+        }
+    }
+}
+
+public class HeatSource(
+    public val position: BlockPos,
+    public val power: Power,
+) {
+    public companion object {
+        public fun fromBlock(pos: BlockPos, block: Block): HeatSource? {
+            val power = HEAT_SOURCE_BLOCKS[block]
+            return if (power !== null) HeatSource(
+                pos,
+                power,
+            ) else null
+        }
+    }
+}
+
+private val HEAT_SOURCE_BLOCKS: Map<Block, Power> by lazy {
     mapOf(
         Blocks.CAMPFIRE to Power(30.0),
         Blocks.CANDLE to Power(0.5),
@@ -49,21 +114,6 @@ public fun BlockState.isHeatSourceBlock(): Boolean {
 
 public fun BlockState.isLit(): Boolean {
     return getValueOrElse(BlockStateProperties.LIT, true)
-}
-
-public fun Level.getOrPutHeatSourceState(): Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<Power>> {
-    return globalHeatSourceState.getOrPut(this) { Long2ObjectOpenHashMap() }
-}
-
-public fun LevelChunk.getOrPutHeatSourceState(): Long2ObjectOpenHashMap<Power> {
-    val levelSources = level.getOrPutHeatSourceState()
-    return levelSources.getOrPut(this.pos.pack()) { Long2ObjectOpenHashMap() }
-}
-
-public fun LevelChunk.rebuildHeatSourceState() {
-    val levelSources = level.getOrPutHeatSourceState()
-    val chunkSources = getHeatSources()
-    levelSources.put(pos.pack(), chunkSources)
 }
 
 internal fun LevelChunk.getHeatSources(): Long2ObjectOpenHashMap<Power> {
@@ -95,33 +145,12 @@ internal fun LevelChunk.getHeatSources(): Long2ObjectOpenHashMap<Power> {
     return chunkSources
 }
 
-public fun LevelChunk.dropHeatSourceState() {
-    val levelSources = globalHeatSourceState[level] ?: return
-    levelSources.remove(pos.pack())
-}
-
-public fun LevelChunk.updateStateForSingleHeatSource(pos: BlockPos, newState: BlockState) {
-    val power = HEAT_SOURCE_BLOCKS[newState.block] ?: return dropStateForSingleHeatSource(pos)
-    val source = HeatSource(pos, power)
-    getOrPutStateForSingleHeatSource(source)
-}
-
-public fun LevelChunk.getOrPutStateForSingleHeatSource(source: HeatSource) {
-    val (pos, power) = source
-    val chunkSources = getOrPutHeatSourceState()
-    chunkSources.put(pos.asLong(), power)
-}
-
-public fun LevelChunk.dropStateForSingleHeatSource(blockPos: BlockPos) {
-    val levelSources = globalHeatSourceState[level] ?: return
-    val chunkSources = levelSources[pos.pack()] ?: return
-    chunkSources.remove(blockPos.asLong())
-}
-
 internal fun sumHeatSources(body: Vec3, sources: List<HeatSource>): Double {
     var heat = 0.0
-    for ((position, power) in sources) {
-        val distanceSq = body.distanceToSqr(Vec3.atCenterOf(position))
+    for (source in sources) {
+        val pos = source.position
+        val power = source.power
+        val distanceSq = body.distanceToSqr(Vec3.atCenterOf(pos))
         val sq = distanceSq + HEAT_SOURCE_SOFTENING
         heat += power.value / sq
     }

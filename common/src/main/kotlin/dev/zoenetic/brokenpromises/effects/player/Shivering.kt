@@ -1,5 +1,6 @@
 package dev.zoenetic.brokenpromises.effects.player
 
+import dev.zoenetic.brokenpromises.vitals.Vitals
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -13,10 +14,11 @@ internal const val SHIVER_CEASES = 32.0
 
 public interface ShiverState {
     public fun `brokenpromises$getShiver`(): Double
-    public fun `brokenpromises$setShiver`(shiver: Double)
+    public fun `brokenpromises$setShiver`(vitals: Vitals)
 }
 
-internal fun shiverIntensity(bodyTemperature: Double): Double {
+internal fun shiverIntensity(vitals: Vitals): Double {
+    val bodyTemperature = vitals.getBodyTemperature().value
     if (bodyTemperature >= SHIVER_ONSET || bodyTemperature <= SHIVER_CEASES) return 0.0
     val halfWidth =
         if (bodyTemperature > SHIVER_PEAK) SHIVER_ONSET - SHIVER_PEAK else SHIVER_PEAK - SHIVER_CEASES

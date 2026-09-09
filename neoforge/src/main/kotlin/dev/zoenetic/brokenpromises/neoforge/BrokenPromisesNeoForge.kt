@@ -3,7 +3,6 @@ package dev.zoenetic.brokenpromises.neoforge
 import dev.zoenetic.brokenpromises.BrokenPromises
 import dev.zoenetic.brokenpromises.commands.*
 import dev.zoenetic.brokenpromises.environment.dropConditionsCache
-import dev.zoenetic.brokenpromises.environment.tickEnvironment
 import dev.zoenetic.brokenpromises.heat.dropHeatSourceState
 import dev.zoenetic.brokenpromises.heat.rebuildHeatSourceState
 import net.minecraft.server.level.ServerLevel
