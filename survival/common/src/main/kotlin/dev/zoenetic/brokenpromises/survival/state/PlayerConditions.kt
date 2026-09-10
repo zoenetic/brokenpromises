@@ -32,9 +32,12 @@ public class PlayerConditions(
             val elapsed = time - previousTime
             if (elapsed < INTERVAL) return previous
             val pos = player.blockPosition()
+            val body = player.boundingBox.center
             val chunk = level.getChunkAt(pos)
             val clock = Ticks(level.overworldClockTime)
             val chunkClimate = chunk.getClimate()
+            val sources = ChunkHeatSources.around(player)
+            val heat = sumHeatSources(body, sources)
             val sky = player.getSky()
             val temperature = chunk.getTemperature(
                 Altitude(pos.y - level.seaLevel),
@@ -44,7 +47,7 @@ public class PlayerConditions(
                 chunkClimate.humidity,
                 player.isUnderOpenSky(),
                 sky,
-                temperature,
+                temperature + heat,
                 chunk.getWind(),
                 time,
             )
@@ -66,15 +69,23 @@ public class PlayerConditions(
             val conditions = get(player)
             set(player, conditions)
         }
+
+        public val DEFAULT: PlayerConditions = PlayerConditions(
+            Humidity(0.5),
+            isUnderOpenSky = false,
+            sky = Sky(0.0),
+            temperature = Celsius(20.0),
+            wind = Wind(Vec3.ZERO),
+        )
     }
 }
 
-internal fun sumHeatSources(body: Vec3, sources: MutableList<HeatSource>): Double {
+internal fun sumHeatSources(body: Vec3, sources: List<HeatSource>): Celsius {
     var heat = 0.0
     for ((position, power) in sources) {
         val distanceSq = body.distanceToSqr(Vec3.atCenterOf(position))
         val sq = distanceSq + HEAT_SOURCE_SOFTENING
         heat += power.value / sq
     }
-    return heat
+    return Celsius(heat)
 }
