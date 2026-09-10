@@ -160,7 +160,7 @@ class ChunkHeatSourcesTests {
         @JvmStatic
         @BeforeAll
         fun setup() {
-            CommonFixtures
+            CommonFixtures.bootstrap()
         }
     }
 }
