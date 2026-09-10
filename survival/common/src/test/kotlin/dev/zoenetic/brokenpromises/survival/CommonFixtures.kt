@@ -49,7 +49,9 @@ object TestPlatform : Platform {
     override val heatSources: ChunkView<HeatSourceIndex> =
         object : ChunkView<HeatSourceIndex> {
             private val byChunk = IdentityHashMap<LevelChunk, HeatSourceIndex>()
-            override fun get(chunk: LevelChunk): HeatSourceIndex? = byChunk[chunk]
+            
+            override fun get(chunk: LevelChunk): HeatSourceIndex =
+                byChunk.getOrPut(chunk) { HeatSourceIndex() }
         }
 
     override val playerConditions: PlayerStore<PlayerConditions> =

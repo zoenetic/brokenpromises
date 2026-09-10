@@ -4,6 +4,7 @@ import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.probe.getHumidity
 import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
+import dev.zoenetic.brokenpromises.survival.units.Time
 import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_HIGH
 import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_LOW
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
@@ -20,6 +21,12 @@ data class SurvivalTest(
 )
 
 object SurvivalTests {
+
+    private fun <T : Any> GameTestHelper.require(value: T?, what: String): T =
+        value ?: throw assertionException("expected $what to be in the store, found nothing")
+
+    private fun GameTestHelper.sample(player: ServerPlayer): PlayerConditions =
+        PlayerConditions.getNew(player, Time(level.gameTime))
 
     @Suppress("DEPRECATION", "removal")
     private fun GameTestHelper.playerAt(relative: BlockPos): ServerPlayer {
@@ -40,7 +47,7 @@ object SurvivalTests {
     fun conditionsComeFromThePlayersOwnChunk(helper: GameTestHelper) {
         val player = helper.playerAt(BlockPos(1, 2, 1))
 
-        val conditions = PlayerConditions.get(player)
+        val conditions = helper.sample(player)
         val ownChunk = helper.level.getChunkAt(player.blockPosition())
         val expected = ownChunk.getHumidity()
 
@@ -55,7 +62,7 @@ object SurvivalTests {
 
     fun conditionsRecordTheCurrentGameTime(helper: GameTestHelper) {
         val player = helper.playerAt(BlockPos(1, 2, 1))
-        val conditions = PlayerConditions.get(player)
+        val conditions = helper.sample(player)
         if (conditions.time.value != helper.level.gameTime) {
             throw helper.assertionException(
                 "conditions recorded tick ${conditions.time.value}, level is at ${helper.level.gameTime}"
@@ -69,7 +76,10 @@ object SurvivalTests {
 
         PlayerConditions.tick(helper.level)
 
-        val stored = Survival.platform.playerConditions.get(player)
+        val stored = helper.require(
+            Survival.platform.playerConditions.get(player),
+            "conditions for a player the level tick has just visited",
+        )
         if (stored.time.value != helper.level.gameTime) {
             throw helper.assertionException(
                 "after a level tick the player's stored conditions are at tick " +
@@ -81,13 +91,13 @@ object SurvivalTests {
 
     fun theProductionLoopDrivesBodyTemperature(helper: GameTestHelper) {
         val player = helper.playerAt(BlockPos(1, 2, 1))
-        val ambient = PlayerConditions.get(player).temperature
-        val start = Vitals.get(player).bodyTemperature.value.value
+        val ambient = helper.sample(player).temperature
+        val start = helper.require(Vitals.get(player), "vitals").bodyTemperature.value.value
 
         helper.startSequence()
             .thenExecuteFor(100) { /* the mod's own tick handlers do the work */ }
             .thenExecute {
-                val now = Vitals.get(player).bodyTemperature.value.value
+                val now = helper.require(Vitals.get(player), "vitals").bodyTemperature.value.value
                 val drift = now - start
                 val where = "ambient ${ambient.value}C, body $start -> $now (drift $drift)"
                 when {
@@ -112,7 +122,10 @@ object SurvivalTests {
         helper.setBlock(relative, Blocks.CAMPFIRE)
 
         val absolute = helper.absolutePos(relative)
-        val index = ChunkHeatSources.of(helper.level.getChunkAt(absolute))
+        val index = helper.require(
+            ChunkHeatSources.of(helper.level.getChunkAt(absolute)),
+            "a heat index for the chunk holding $absolute",
+        )
         if (!index.containsKey(absolute.asLong())) {
             throw helper.assertionException(
                 "campfire at $absolute never reached the chunk's heat index (LevelChunkMixin?)"
@@ -127,7 +140,10 @@ object SurvivalTests {
         helper.setBlock(relative, Blocks.AIR)
 
         val absolute = helper.absolutePos(relative)
-        val index = ChunkHeatSources.of(helper.level.getChunkAt(absolute))
+        val index = helper.require(
+            ChunkHeatSources.of(helper.level.getChunkAt(absolute)),
+            "a heat index for the chunk holding $absolute",
+        )
         if (index.containsKey(absolute.asLong())) {
             throw helper.assertionException("campfire at $absolute is still in the heat index")
         }

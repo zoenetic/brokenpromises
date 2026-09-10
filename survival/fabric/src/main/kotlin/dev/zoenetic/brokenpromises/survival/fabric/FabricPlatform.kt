@@ -22,7 +22,9 @@ public object FabricPlatform : Platform {
     override fun isModLoaded(modId: String): Boolean = FabricLoader.getInstance().isModLoaded(modId)
 
     override val heatSources: ChunkView<HeatSourceIndex> = FabricChunkView(
-        AttachmentRegistry.create(id("chunk_heat_sources"))
+        AttachmentRegistry.create(id("chunk_heat_sources")) {
+            it.initializer { HeatSourceIndex() }
+        }
     )
 
     override val playerConditions: PlayerStore<PlayerConditions> = FabricPlayerStore(

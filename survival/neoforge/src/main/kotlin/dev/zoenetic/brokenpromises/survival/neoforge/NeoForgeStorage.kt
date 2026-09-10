@@ -12,7 +12,7 @@ import java.util.function.Supplier
 internal class NeoForgeChunkView<T : Any>(
     val type: Supplier<AttachmentType<T>>,
 ) : ChunkView<T> {
-    override fun get(chunk: LevelChunk): T? = chunk.getExistingDataOrNull(type)
+    override fun get(chunk: LevelChunk): T = chunk.getData(type)
 }
 
 internal class NeoForgePlayerStore<T : Any>(

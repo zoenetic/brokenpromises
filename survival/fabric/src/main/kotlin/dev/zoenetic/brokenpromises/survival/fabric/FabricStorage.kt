@@ -11,7 +11,7 @@ import net.minecraft.world.level.chunk.LevelChunk
 internal class FabricChunkView<T : Any>(
     private val type: AttachmentType<T>,
 ) : ChunkView<T> {
-    override fun get(chunk: LevelChunk): T? = chunk.getAttached(type)
+    override fun get(chunk: LevelChunk): T = chunk.getAttachedOrCreate(type)
 }
 
 internal class FabricPlayerStore<T : Any>(
