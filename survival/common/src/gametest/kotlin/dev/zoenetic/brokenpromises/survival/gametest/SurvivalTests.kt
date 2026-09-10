@@ -4,6 +4,7 @@ import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.probe.getHumidity
 import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
+import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Time
 import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_HIGH
 import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_LOW
@@ -91,21 +92,30 @@ object SurvivalTests {
 
     fun theProductionLoopDrivesBodyTemperature(helper: GameTestHelper) {
         val player = helper.playerAt(BlockPos(1, 2, 1))
-        val ambient = helper.sample(player).temperature
-        val start = helper.require(Vitals.get(player), "vitals").bodyTemperature.value.value
+        var ambient: Celsius? = null
+        var start: Double? = null
 
         helper.startSequence()
+            .thenIdle(2)
+            .thenExecute {
+                ambient = helper.sample(player).temperature
+                start = helper.require(Vitals.get(player), "seeded vitals")
+                    .bodyTemperature.value.value
+            }
             .thenExecuteFor(100) { /* the mod's own tick handlers do the work */ }
             .thenExecute {
-                val now = helper.require(Vitals.get(player), "vitals").bodyTemperature.value.value
-                val drift = now - start
-                val where = "ambient ${ambient.value}C, body $start -> $now (drift $drift)"
+                val began = helper.require(start, "a captured starting temperature")
+                val outside = helper.require(ambient, "a captured ambient temperature")
+                val now = helper.require(Vitals.get(player), "vitals")
+                    .bodyTemperature.value.value
+                val drift = now - began
+                val where = "ambient ${outside.value}C, body $began -> $now (drift $drift)"
                 when {
-                    ambient < COMFORT_LOW -> if (drift >= 0.0) throw helper.assertionException(
+                    outside < COMFORT_LOW -> if (drift >= 0.0) throw helper.assertionException(
                         "below the comfort band the body should cool: $where"
                     )
 
-                    ambient > COMFORT_HIGH -> if (drift <= 0.0) throw helper.assertionException(
+                    outside > COMFORT_HIGH -> if (drift <= 0.0) throw helper.assertionException(
                         "above the comfort band the body should warm: $where"
                     )
 
