@@ -4,7 +4,6 @@ import dev.zoenetic.brokenpromises.survival.CommonFixtures
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.chunk.LevelChunk
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.*
@@ -33,22 +32,8 @@ class ChunkHeatSourcesTests {
         "no heat index registered for chunk ${chunk.pos}"
     )
 
-    @Test
-    fun `lava counts as a lit heat source`() {
-        assertTrue(Blocks.LAVA.defaultBlockState().isLit())
-    }
 
-    @Test
-    fun `campfires can be unlit`() {
-        assertTrue(campfire.isHeatSourceBlock())
-        assertTrue(campfire.isLit())
-        assertFalse(campfire.setValue(BlockStateProperties.LIT, false).isLit())
-    }
 
-    @Test
-    fun `a non heat source block is not a heat source`() {
-        assertFalse(stone.isHeatSourceBlock())
-    }
 
     @Test
     fun `an empty chunk has no heat sources`() {

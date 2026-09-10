@@ -31,6 +31,7 @@ class PlayerConditionsTests {
             SectionPos.blockToSectionCoord(standingOn.x),
             SectionPos.blockToSectionCoord(standingOn.z),
         )
+
         assertEquals(
             expected,
             world.requestedChunks.first(),

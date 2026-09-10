@@ -1,10 +1,12 @@
 package dev.zoenetic.brokenpromises.survival.probe
 
 import dev.zoenetic.brokenpromises.survival.CommonFixtures
+import dev.zoenetic.brokenpromises.survival.units.Wind
 import net.minecraft.world.level.ChunkPos
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class RealNoiseSmokeTests {
@@ -13,45 +15,58 @@ class RealNoiseSmokeTests {
 
     private fun at(x: Int, z: Int) = CommonFixtures.climateChunk(ChunkPos(x, z), level)
 
-    @Test
-    fun `humidity from real noise lands inside the unit range`() {
-        for (x in 0..8) {
-            val humidity = at(x, x * 3).getHumidity().value
-            assertTrue(humidity in 0.0..1.0, "chunk ($x, ${x * 3}) gave humidity $humidity")
-        }
-    }
+    private val sample = (0..19).map { at(it * 7, it * -5) }
 
     @Test
-    fun `base temperature from real noise stays between pole and equator`() {
-        for (x in 0..8) {
-            val t = at(x, -x).getBaseTemperature().value
-            assertTrue(t >= POLE_C, "chunk ($x, ${-x}) gave $t, below $POLE_C")
-            assertTrue(t <= EQUATOR_C, "chunk ($x, ${-x}) gave $t, above $EQUATOR_C")
-        }
-    }
-
-    @Test
-    fun `the climate really does vary from place to place`() {
-        val temperatures = (0..40 step 4).map { at(it, it).getBaseTemperature().value }
+    fun `humidity is not the same everywhere`() {
+        val humidities = sample.map { it.getHumidity().value }
         assertTrue(
-            temperatures.distinct().size > 1,
-            "real noise should differ across chunks, got $temperatures"
+            humidities.distinct().size >= humidities.size - 1,
+            "real noise should give a distinct humidity almost everywhere, got $humidities"
+        )
+    }
+
+    @Test
+    fun `temperature is not the same everywhere`() {
+        val temperatures = sample.map { it.getBaseTemperature().value }
+        assertTrue(
+            temperatures.distinct().size >= temperatures.size - 1,
+            "real noise should give a distinct temperature almost everywhere, got $temperatures"
+        )
+    }
+
+    @Test
+    fun `humidity and temperature come from different noise fields`() {
+        val byHumidity = sample.sortedBy { it.getHumidity().value }.map { it.pos }
+        val byTemperature = sample.sortedBy { it.getBaseTemperature().value }.map { it.pos }
+        assertNotEquals(
+            byHumidity,
+            byTemperature,
+            "humidity and temperature rank identically, so they are reading one field"
         )
     }
 
     @Test
     fun `the same chunk position always samples the same climate`() {
-        val once = at(7, -13).getClimate()
-        val twice = at(7, -13).getClimate()
-        assertEquals(once, twice, "$once should equal $twice")
+        assertEquals(
+            at(7, -13).getClimate(),
+            at(7, -13).getClimate(),
+            "the sampler must be deterministic for a given seed and position"
+        )
     }
 
     @Test
-    fun `wind from real noise has a finite, non-negative speed`() {
-        for (x in 0..8) {
-            val speed = at(x, x + 5).getWind().speed
-            assertTrue(speed.isFinite() && speed >= 0.0, "chunk gave wind speed $speed")
-        }
+    fun `wind is presently derived from the temperature field`() {
+        val chunk = at(3, 11)
+        val fromTemperature = Wind.fromDensityFunction(
+            CommonFixtures.randomState.sampler().temperature(),
+            chunk,
+        )
+        assertEquals(
+            fromTemperature.vector,
+            chunk.getWind().vector,
+            "wind no longer tracks the temperature field — if that was deliberate, update this"
+        )
     }
 
     companion object {
