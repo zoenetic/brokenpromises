@@ -84,6 +84,7 @@ public object ChunkHeatSources {
     }
 
     public fun rebuild(chunk: LevelChunk) {
+        if (chunk.level.isClientSide) return
         val index = Survival.platform.heatSources.get(chunk)
         for (sectionY in chunk.minSectionY..chunk.maxSectionY) {
             val section = chunk.getSection(chunk.getSectionIndexFromSectionY(sectionY))

@@ -5,6 +5,7 @@ import dev.zoenetic.brokenpromises.survival.probe.*
 import dev.zoenetic.brokenpromises.survival.units.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 
 public class PlayerConditions(
@@ -33,14 +34,6 @@ public class PlayerConditions(
                 Altitude(pos.y - level.seaLevel),
                 chunkClimate.humidity, sky, clock
             )
-            val sources = ChunkHeatSources.around(player).toMutableList()
-            if (Survival.platform.isDevelopmentEnvironment)
-                Survival.LOGGER.info(
-                    "conditions: base={} sources={} heat={}",
-                    temperature.value,
-                    sources.size,
-                    sumHeatSources(player.boundingBox.center, sources)
-                )
             return PlayerConditions(
                 chunkClimate.humidity,
                 player.isUnderOpenSky(),
@@ -55,7 +48,8 @@ public class PlayerConditions(
             Survival.platform.playerConditions.set(player, conditions)
         }
 
-        public fun tick(level: ServerLevel) {
+        public fun tick(level: Level) {
+            if (level !is ServerLevel) return
             val players = level.players()
             players.forEach { player ->
                 tick(player)

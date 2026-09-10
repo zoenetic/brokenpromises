@@ -7,6 +7,21 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.chunk.LevelChunk
 
+public enum class PlatformName {
+    FABRIC,
+    NEOFORGE,
+}
+
+public fun PlatformName.id(): String = this.name.lowercase()
+
+public enum class Store {
+    CHUNK_HEAT_SOURCES,
+    PLAYER_CONDITIONS,
+    PLAYER_VITALS,
+}
+
+public fun Store.id(): String = this.name.lowercase()
+
 public interface ChunkView<T> {
     public fun get(chunk: LevelChunk): T
 }
@@ -21,20 +36,13 @@ public interface PlayerStore<T> {
     public fun set(player: ServerPlayer, value: T)
 }
 
-/**
- * A player store whose value the server pushes to clients.
- *
- * Reads take a plain [Player] so render code can reach them; on the client the
- * value is the last copy the server sent. Writes stay on [ServerPlayer]: the
- * server owns the value, the client only observes it.
- */
 public interface SyncedPlayerStore<T> {
     public fun get(player: Player): T
     public fun set(player: ServerPlayer, value: T)
 }
 
 public interface Platform {
-    public val name: String
+    public val name: PlatformName
     public val isDevelopmentEnvironment: Boolean
     public fun isModLoaded(modId: String): Boolean
 

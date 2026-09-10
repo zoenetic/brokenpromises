@@ -1,12 +1,14 @@
 package dev.zoenetic.brokenpromises.survival.neoforge
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.commands.*
-import dev.zoenetic.brokenpromises.survival.environment.dropConditionsCache
-import dev.zoenetic.brokenpromises.survival.environment.tickEnvironment
-import dev.zoenetic.brokenpromises.survival.heat.dropHeatSourceState
-import dev.zoenetic.brokenpromises.survival.heat.rebuildHeatSourceState
-import net.minecraft.server.level.ServerLevel
+import dev.zoenetic.brokenpromises.survival.commands.rootCommand
+import dev.zoenetic.brokenpromises.survival.commands.setBodyTemperatureCommand
+import dev.zoenetic.brokenpromises.survival.commands.survivalCommand
+import dev.zoenetic.brokenpromises.survival.debug.watchCommand
+import dev.zoenetic.brokenpromises.survival.debug.watchers
+import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
+import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
+import dev.zoenetic.brokenpromises.survival.vitals.Vitals
 import net.minecraft.server.level.ServerPlayer
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.common.Mod
@@ -34,30 +36,24 @@ public class SurvivalNeoForge(modBus: IEventBus) {
             )
         }
         bus.addListener(PlayerEvent.PlayerLoggedInEvent::class.java) { event ->
-            (event.entity as? ServerPlayer)?.let(::addDevWatcher)
+            val player = event.entity as? ServerPlayer ?: return@addListener
+            watchers.addDev(player)
         }
         bus.addListener(PlayerEvent.PlayerLoggedOutEvent::class.java) { event ->
-            (event.entity.uuid).let(::removeWatcher)
-            (event.entity.uuid).let(::dropConditionsCache)
+            val player = event.entity as? ServerPlayer ?: return@addListener
+            watchers.remove(player.uuid)
         }
         bus.addListener(ChunkEvent.Load::class.java) { event ->
             val chunk = event.chunk
-            if (chunk.level.isClientSide) return@addListener
-            chunk.rebuildHeatSourceState()
-        }
-        bus.addListener(ChunkEvent.Unload::class.java) { event ->
-            val chunk = event.chunk
-            if (chunk.level.isClientSide) return@addListener
-            chunk.dropHeatSourceState()
+            ChunkHeatSources.rebuild(chunk)
         }
         bus.addListener(LevelTickEvent.Post::class.java) { event ->
             val level = event.level
-            if (level is ServerLevel) level.tickEnvironment(
-                level.gameTime
-            )
+            PlayerConditions.tick(level)
+            Vitals.tick(level)
         }
         bus.addListener(ServerTickEvent.Post::class.java) { event ->
-            event.server.tickWatchers(event.server.overworld().gameTime)
+            watchers.tick(event.server)
         }
     }
 }

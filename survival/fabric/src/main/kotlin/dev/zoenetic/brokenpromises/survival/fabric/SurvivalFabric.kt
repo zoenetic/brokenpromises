@@ -29,7 +29,7 @@ public object SurvivalFabric : ModInitializer {
             )
         }
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
-            watchers.add(handler.player.uuid)
+            watchers.addDev(handler.player)
         }
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
             watchers.remove(handler.player.uuid)

@@ -1,10 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.fabric
 
 import dev.zoenetic.brokenpromises.survival.Survival.MOD_ID
-import dev.zoenetic.brokenpromises.survival.platform.ChunkView
-import dev.zoenetic.brokenpromises.survival.platform.Platform
-import dev.zoenetic.brokenpromises.survival.platform.PlayerStore
-import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
+import dev.zoenetic.brokenpromises.survival.platform.*
 import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
@@ -14,7 +11,7 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.resources.Identifier
 
 public object FabricPlatform : Platform {
-    override val name: String = "Fabric"
+    override val name: PlatformName = PlatformName.FABRIC
 
     override val isDevelopmentEnvironment: Boolean
         get() = FabricLoader.getInstance().isDevelopmentEnvironment
@@ -22,21 +19,20 @@ public object FabricPlatform : Platform {
     override fun isModLoaded(modId: String): Boolean = FabricLoader.getInstance().isModLoaded(modId)
 
     override val heatSources: ChunkView<HeatSourceIndex> = FabricChunkView(
-        AttachmentRegistry.create(id("chunk_heat_sources"))
+        AttachmentRegistry.create(id(Store.CHUNK_HEAT_SOURCES))
         { it.initializer(::HeatSourceIndex) })
 
     override val playerConditions: PlayerStore<PlayerConditions> = FabricPlayerStore(
-        AttachmentRegistry.create(id("player_conditions"))
+        AttachmentRegistry.create(id(Store.PLAYER_CONDITIONS))
         { it.initializer(::PlayerConditions) })
 
-    // Synced to every client tracking the player, not just the player themselves:
-    // LivingEntityRenderer draws other players shivering too.
     override val vitals: SyncedPlayerStore<Vitals> = FabricSyncedPlayerStore(
-        AttachmentRegistry.create(id("player_vitals"))
+        AttachmentRegistry.create(id(Store.PLAYER_VITALS))
         {
             it.initializer { Vitals.DEFAULT }
                 .syncWith(Vitals.STREAM_CODEC, AttachmentSyncPredicate.all())
+                .persistent(Vitals.CODEC)
         })
 }
 
-private fun id(path: String) = Identifier.fromNamespaceAndPath(MOD_ID, path)
+private fun id(store: Store) = Identifier.fromNamespaceAndPath(MOD_ID, store.id())

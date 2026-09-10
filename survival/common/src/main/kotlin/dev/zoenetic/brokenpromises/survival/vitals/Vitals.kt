@@ -9,6 +9,7 @@ import net.minecraft.network.codec.StreamCodec
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
 
 public data class Vitals(
     val bodyTemperature: BodyTemperature = BodyTemperature.DEFAULT,
@@ -22,8 +23,8 @@ public data class Vitals(
             Survival.platform.vitals.set(player, vitals)
         }
 
-        /** One tick of drift towards the target implied by the player's conditions. */
-        public fun tick(level: ServerLevel) {
+        public fun tick(level: Level) {
+            if (level !is ServerLevel) return
             level.players().forEach { player -> tick(player, Ticks(1L)) }
         }
 
