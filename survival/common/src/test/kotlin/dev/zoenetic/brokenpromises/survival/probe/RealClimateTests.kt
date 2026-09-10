@@ -42,7 +42,7 @@ class RealClimateTests {
     @Test
     fun `every scanned column stays inside the pole to equator band`() {
         val outside = climateScan.filter {
-            it.temperature.value < POLE_C || it.temperature.value > EQUATOR_C
+            it.temperature.value !in POLE_C..EQUATOR_C
         }
         assertTrue(outside.isEmpty(), "columns outside [$POLE_C, $EQUATOR_C]: ${outside.take(3)}")
     }
