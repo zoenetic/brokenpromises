@@ -36,7 +36,7 @@ class BodyTemperatureTests {
     fun `approach never overshoots when warming`() {
         val current = c(NORMAL_BODY_TEMPERATURE)
         for (gap in 1..10) {
-            val target = current + c(gap.toDouble())
+            val target = current + TemperatureDifference(gap.toDouble())
             for (elapsed in listOf(1L, 20L, 100_000L)) {
                 val new = approach(current, target, d(elapsed), BODY_WARMS_AT)
                 assertTrue(
@@ -51,7 +51,7 @@ class BodyTemperatureTests {
     fun `approach never overshoots when cooling`() {
         val current = c(NORMAL_BODY_TEMPERATURE)
         for (gap in 1..10) {
-            val target = current - c(gap.toDouble())
+            val target = current - TemperatureDifference(gap.toDouble())
             for (elapsed in listOf(1L, 20L, 100_000L)) {
                 val new = approach(current, target, d(elapsed), BODY_COOLS_AT)
                 assertTrue(
@@ -64,7 +64,7 @@ class BodyTemperatureTests {
 
     @Test
     fun `approach composes, 40 ticks equals 2 x 20 ticks`() {
-        val target = c(NORMAL_BODY_TEMPERATURE) + c(3.0)
+        val target = c(NORMAL_BODY_TEMPERATURE) + TemperatureDifference(3.0)
         val afterForty = approach(c(NORMAL_BODY_TEMPERATURE), target, d(40), BODY_WARMS_AT)
         val afterFirstTwenty = approach(c(NORMAL_BODY_TEMPERATURE), target, d(20), BODY_WARMS_AT)
         val afterSecondTwenty = approach(afterFirstTwenty, target, d(20), BODY_WARMS_AT)
@@ -73,7 +73,7 @@ class BodyTemperatureTests {
 
     @Test
     fun `one tick at a time equals one step of twenty ticks`() {
-        val target = c(NORMAL_BODY_TEMPERATURE) - c(8.0)
+        val target = c(NORMAL_BODY_TEMPERATURE) - TemperatureDifference(8.0)
         var stepwise = c(NORMAL_BODY_TEMPERATURE)
         repeat(20) { stepwise = approach(stepwise, target, d(1), BODY_COOLS_AT) }
         val oneGo = approach(c(NORMAL_BODY_TEMPERATURE), target, d(20), BODY_COOLS_AT)

@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.state
 
-import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Power
+import dev.zoenetic.brokenpromises.survival.units.TemperatureDifference
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
 import kotlin.math.abs
@@ -16,7 +16,7 @@ class HeatSourcesTests {
 
     @Test
     fun `no sources contribute nothing`() {
-        assertEquals(Celsius(0.0), sumHeatSources(body, mutableListOf()))
+        assertEquals(TemperatureDifference(0.0), sumHeatSources(body, mutableListOf()))
     }
 
     @Test

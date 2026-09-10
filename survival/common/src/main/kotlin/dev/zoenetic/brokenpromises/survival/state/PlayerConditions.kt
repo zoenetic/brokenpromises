@@ -74,12 +74,12 @@ public class PlayerConditions(
     }
 }
 
-internal fun sumHeatSources(body: Vec3, sources: List<HeatSource>): Celsius {
+internal fun sumHeatSources(body: Vec3, sources: List<HeatSource>): TemperatureDifference {
     var heat = 0.0
     for ((position, power) in sources) {
         val distanceSq = body.distanceToSqr(Vec3.atCenterOf(position))
         val sq = distanceSq + HEAT_SOURCE_SOFTENING
         heat += power.value / sq
     }
-    return Celsius(heat)
+    return TemperatureDifference(heat)
 }

@@ -8,13 +8,13 @@ import net.minecraft.network.codec.StreamCodec
 @JvmInline
 public value class Celsius(public val value: Double) {
 
-    public operator fun plus(o: Celsius): Celsius = Celsius(value + o.value)
-    public operator fun minus(o: Celsius): Celsius = Celsius(value - o.value)
-    public operator fun times(k: Double): Celsius = Celsius(value * k)
-    public operator fun times(i: Int): Celsius = Celsius(value * i)
-    public operator fun div(o: Celsius): Double = value / o.value
-    public operator fun div(k: Double): Celsius = Celsius(value / k)
-    public operator fun unaryMinus(): Celsius = Celsius(-value)
+    public operator fun plus(d: TemperatureDifference): Celsius = Celsius(value + d.value)
+
+    public operator fun minus(o: Celsius): TemperatureDifference =
+        TemperatureDifference(value - o.value)
+
+    public operator fun minus(d: TemperatureDifference): Celsius = Celsius(value - d.value)
+
     public operator fun compareTo(o: Celsius): Int = value.compareTo(o.value)
 
     public fun toDouble(): Double = value

@@ -111,11 +111,11 @@ object SurvivalTests {
                 val drift = now - began
                 val where = "ambient ${outside.value}C, body $began -> $now (drift $drift)"
                 when {
-                    outside < COMFORT_LOW -> if (drift >= 0.0) throw helper.assertionException(
+                    outside.value < COMFORT_LOW -> if (drift >= 0.0) throw helper.assertionException(
                         "below the comfort band the body should cool: $where"
                     )
 
-                    outside > COMFORT_HIGH -> if (drift <= 0.0) throw helper.assertionException(
+                    outside.value > COMFORT_HIGH -> if (drift <= 0.0) throw helper.assertionException(
                         "above the comfort band the body should warm: $where"
                     )
 
