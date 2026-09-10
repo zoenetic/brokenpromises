@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "brokenpromises_survival_gametest",
+  "version": "1.0.0",
+  "name": "Broken Promises: Survival GameTests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "dev.zoenetic.brokenpromises.survival.fabric.gametest.SurvivalGameTests"
+    ]
+  },
+  "depends": {
+    "brokenpromises_survival": "*",
+    "fabric-gametest-api-v1": "*"
+  }
+}
