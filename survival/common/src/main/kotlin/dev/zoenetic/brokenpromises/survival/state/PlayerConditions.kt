@@ -8,6 +8,8 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 
+private val INTERVAL = Ticks(20L)
+
 public class PlayerConditions(
     public val humidity: Humidity = Humidity(0.5),
     public val isUnderOpenSky: Boolean = true,
@@ -24,9 +26,13 @@ public class PlayerConditions(
 
         public fun get(player: ServerPlayer): PlayerConditions {
             val level = player.level()
+            val previous = Survival.platform.playerConditions.get(player)
+            val previousTime = previous.time
+            val time = Ticks(level.gameTime)
+            val elapsed = time - previousTime
+            if (elapsed < INTERVAL) return previous
             val pos = player.blockPosition()
             val chunk = level.getChunkAt(pos)
-            val time = Ticks(level.gameTime)
             val clock = Ticks(level.overworldClockTime)
             val chunkClimate = chunk.getClimate()
             val sky = player.getSky()
