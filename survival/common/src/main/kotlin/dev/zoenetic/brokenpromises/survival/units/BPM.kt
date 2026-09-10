@@ -7,6 +7,10 @@ import net.minecraft.network.codec.StreamCodec
 
 @JvmInline
 public value class BPM(public val value: Double) {
+
+    public operator fun plus(o: BPM): BPM = BPM(value + o.value)
+    public operator fun times(k: Double): BPM = BPM(value * k)
+
     public companion object {
         public val CODEC: Codec<BPM> =
             Codec.DOUBLE.xmap(

@@ -49,12 +49,12 @@ public value class SpeedPenalty(public val value: Double) {
     public companion object {
         public fun forTemperature(temperature: Celsius): SpeedPenalty {
             val deviation =
-                abs(temperature.value - NORMAL_BODY_TEMPERATURE.value)
+                abs(temperature.value - NORMAL_BODY_TEMPERATURE)
             if (deviation <= SPEED_PENALTY_DEAD_ZONE) return SpeedPenalty(0.0)
             val fullAt =
-                if (temperature < NORMAL_BODY_TEMPERATURE) COLD_FULL_PENALTY_AT else HEAT_FULL_PENALTY_AT
+                if (temperature.value < NORMAL_BODY_TEMPERATURE) COLD_FULL_PENALTY_AT else HEAT_FULL_PENALTY_AT
             val range =
-                abs(fullAt - NORMAL_BODY_TEMPERATURE.value) - SPEED_PENALTY_DEAD_ZONE
+                abs(fullAt - NORMAL_BODY_TEMPERATURE) - SPEED_PENALTY_DEAD_ZONE
             val progress =
                 ((deviation - SPEED_PENALTY_DEAD_ZONE) / range).coerceIn(
                     0.0,

@@ -13,15 +13,15 @@ import net.minecraft.network.codec.StreamCodec
 import net.minecraft.world.entity.player.Player
 import kotlin.math.pow
 
-internal val NORMAL_BODY_TEMPERATURE = Celsius(37.0)
+internal const val NORMAL_BODY_TEMPERATURE = 37.0
 
-public val BODY_COOLS_AT: Conductance = Conductance(30.0 * 60.0)
-public val BODY_WARMS_AT: Conductance = Conductance(15.0 * 60.0)
+public const val BODY_COOLS_AT: Double = 30.0 * 60.0
+public const val BODY_WARMS_AT: Double = 15.0 * 60.0
 
-public val COMFORT_LOW: Celsius = Celsius(20.0)
-public val COMFORT_HIGH: Celsius = Celsius(30.0)
-public val COLD_LEAKAGE: Celsius = Celsius(0.5)
-public val HEAT_LEAKAGE: Celsius = Celsius(0.2)
+public const val COMFORT_LOW: Double = 20.0
+public const val COMFORT_HIGH: Double = 30.0
+public const val COLD_LEAKAGE: Double = 0.5
+public const val HEAT_LEAKAGE: Double = 0.2
 
 
 public data class BodyTemperature(
@@ -51,14 +51,18 @@ public data class BodyTemperature(
 
 
     public companion object {
-        internal fun target(ambient: Celsius): Celsius = when {
-            ambient < COMFORT_LOW ->
-                NORMAL_BODY_TEMPERATURE - COLD_LEAKAGE * (COMFORT_LOW - ambient).toDouble()
+        internal fun target(ambient: Celsius): Celsius {
+            val ambient = ambient.value
+            val target = when {
+                ambient < COMFORT_LOW ->
+                    NORMAL_BODY_TEMPERATURE - COLD_LEAKAGE * (COMFORT_LOW - ambient)
 
-            ambient > COMFORT_HIGH ->
-                NORMAL_BODY_TEMPERATURE + HEAT_LEAKAGE * (ambient - COMFORT_HIGH).toDouble()
+                ambient > COMFORT_HIGH ->
+                    NORMAL_BODY_TEMPERATURE + HEAT_LEAKAGE * (ambient - COMFORT_HIGH)
 
-            else -> NORMAL_BODY_TEMPERATURE
+                else -> NORMAL_BODY_TEMPERATURE
+            }
+            return Celsius(target)
         }
 
         internal fun halfLife(
@@ -66,10 +70,12 @@ public data class BodyTemperature(
             medium: Conductance? = null,
             surface: Conductance? = null,
             wind: Conductance? = null,
-        ): Conductance {
+        ): Double {
+            val medium = medium?.value
+            val surface = surface?.value
+            val wind = wind?.value
             val conductance =
-                (medium ?: Conductance(1.0)) * (surface ?: Conductance(1.0)) * (wind
-                    ?: Conductance(1.0))
+                (medium ?: 1.0) * (surface ?: 1.0) * (wind ?: 1.0)
             return if (isWarming) BODY_WARMS_AT / conductance else BODY_COOLS_AT / conductance
         }
 
@@ -77,13 +83,13 @@ public data class BodyTemperature(
             current: Celsius,
             target: Celsius,
             elapsed: Duration,
-            halfLife: Conductance,
+            halfLife: Double,
         ): Celsius {
             val elapsedSeconds = elapsed.value / SharedConstants.TICKS_PER_SECOND.toDouble()
-            val remainingFraction = 0.5.pow(elapsedSeconds / halfLife.value)
+            val remainingFraction = 0.5.pow(elapsedSeconds / halfLife)
             return Celsius(target.value + (current.value - target.value) * remainingFraction)
         }
-        
+
         public val CODEC: Codec<BodyTemperature> =
             Celsius.CODEC.xmap(
                 ::BodyTemperature,
@@ -96,6 +102,6 @@ public data class BodyTemperature(
                 BodyTemperature::value
             )
 
-        public val DEFAULT: BodyTemperature = BodyTemperature(NORMAL_BODY_TEMPERATURE)
+        public val DEFAULT: BodyTemperature = BodyTemperature(Celsius(NORMAL_BODY_TEMPERATURE))
     }
 }

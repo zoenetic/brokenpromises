@@ -11,7 +11,7 @@ class MovementsTests {
     private fun penalty(temperature: Double): Double =
         SpeedPenalty.forTemperature(Celsius(temperature)).value
 
-    private val normal = NORMAL_BODY_TEMPERATURE.value
+    private val normal = NORMAL_BODY_TEMPERATURE
 
     @Test
     fun `temperatures in the dead zone give no speed reduction`() {

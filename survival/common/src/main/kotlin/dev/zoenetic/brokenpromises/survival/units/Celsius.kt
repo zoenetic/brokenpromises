@@ -9,10 +9,11 @@ import net.minecraft.network.codec.StreamCodec
 public value class Celsius(public val value: Double) {
 
     public operator fun plus(o: Celsius): Celsius = Celsius(value + o.value)
-    public operator fun minus(k: Double): Celsius = Celsius(value - k)
     public operator fun minus(o: Celsius): Celsius = Celsius(value - o.value)
     public operator fun times(k: Double): Celsius = Celsius(value * k)
-    public operator fun div(o: Celsius): Celsius = Celsius(value / o.value)
+    public operator fun times(i: Int): Celsius = Celsius(value * i)
+    public operator fun div(o: Celsius): Double = value / o.value
+    public operator fun div(k: Double): Celsius = Celsius(value / k)
     public operator fun unaryMinus(): Celsius = Celsius(-value)
     public operator fun compareTo(o: Celsius): Int = value.compareTo(o.value)
 

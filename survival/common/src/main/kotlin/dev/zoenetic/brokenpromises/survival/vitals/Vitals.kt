@@ -42,7 +42,7 @@ public data class Vitals(
                 conditions,
                 elapsed
             )
-            val heartRate = previous.heartRate.getNew(player, conditions, elapsed)
+            val heartRate = previous.heartRate.getNew(bodyTemperature.value)
             val vitals = Vitals(
                 bodyTemperature,
                 heartRate,

@@ -27,14 +27,14 @@ class BodyTemperatureTests {
 
     @Test
     fun `one half-life closes exactly half the gap`() {
-        val oneSecond = Conductance(1.0)
+        val oneSecond = 1.0
         assertEquals(28.5, approach(c(30.0), c(27.0), d(20), oneSecond).value, 1e-9)
         assertEquals(45.5, approach(c(44.0), c(47.0), d(20), oneSecond).value, 1e-9)
     }
 
     @Test
     fun `approach never overshoots when warming`() {
-        val current = NORMAL_BODY_TEMPERATURE
+        val current = c(NORMAL_BODY_TEMPERATURE)
         for (gap in 1..10) {
             val target = current + c(gap.toDouble())
             for (elapsed in listOf(1L, 20L, 100_000L)) {
@@ -49,7 +49,7 @@ class BodyTemperatureTests {
 
     @Test
     fun `approach never overshoots when cooling`() {
-        val current = NORMAL_BODY_TEMPERATURE
+        val current = c(NORMAL_BODY_TEMPERATURE)
         for (gap in 1..10) {
             val target = current - c(gap.toDouble())
             for (elapsed in listOf(1L, 20L, 100_000L)) {
@@ -64,28 +64,28 @@ class BodyTemperatureTests {
 
     @Test
     fun `approach composes, 40 ticks equals 2 x 20 ticks`() {
-        val target = NORMAL_BODY_TEMPERATURE + c(3.0)
-        val afterForty = approach(NORMAL_BODY_TEMPERATURE, target, d(40), BODY_WARMS_AT)
-        val afterFirstTwenty = approach(NORMAL_BODY_TEMPERATURE, target, d(20), BODY_WARMS_AT)
+        val target = c(NORMAL_BODY_TEMPERATURE) + c(3.0)
+        val afterForty = approach(c(NORMAL_BODY_TEMPERATURE), target, d(40), BODY_WARMS_AT)
+        val afterFirstTwenty = approach(c(NORMAL_BODY_TEMPERATURE), target, d(20), BODY_WARMS_AT)
         val afterSecondTwenty = approach(afterFirstTwenty, target, d(20), BODY_WARMS_AT)
         assertEquals(afterForty.value, afterSecondTwenty.value, 1e-9)
     }
 
     @Test
     fun `one tick at a time equals one step of twenty ticks`() {
-        val target = NORMAL_BODY_TEMPERATURE - c(8.0)
-        var stepwise = NORMAL_BODY_TEMPERATURE
+        val target = c(NORMAL_BODY_TEMPERATURE) - c(8.0)
+        var stepwise = c(NORMAL_BODY_TEMPERATURE)
         repeat(20) { stepwise = approach(stepwise, target, d(1), BODY_COOLS_AT) }
-        val oneGo = approach(NORMAL_BODY_TEMPERATURE, target, d(20), BODY_COOLS_AT)
+        val oneGo = approach(c(NORMAL_BODY_TEMPERATURE), target, d(20), BODY_COOLS_AT)
         assertEquals(oneGo.value, stepwise.value, 1e-9)
     }
 
     @Test
     fun `a single tick actually moves the body temperature`() {
-        val target = NORMAL_BODY_TEMPERATURE - c(20.0)
-        val after = approach(NORMAL_BODY_TEMPERATURE, target, d(1), BODY_COOLS_AT)
+        val target = c(NORMAL_BODY_TEMPERATURE - 20.0)
+        val after = approach(c(NORMAL_BODY_TEMPERATURE), target, d(1), BODY_COOLS_AT)
         assertTrue(
-            after.value < NORMAL_BODY_TEMPERATURE.value,
+            after.value < NORMAL_BODY_TEMPERATURE,
             "one tick in the cold should cool the body, got ${after.value}"
         )
     }
@@ -111,14 +111,14 @@ class BodyTemperatureTests {
     @Test
     fun `a conductive medium divides the baseline by its conductance`() {
         val water = ConductiveMedium.WATER.conductance
-        assertEquals(BODY_COOLS_AT / water, halfLife(isWarming = false, medium = water))
-        assertEquals(BODY_WARMS_AT / water, halfLife(isWarming = true, medium = water))
+        assertEquals(BODY_COOLS_AT / water.value, halfLife(isWarming = false, medium = water))
+        assertEquals(BODY_WARMS_AT / water.value, halfLife(isWarming = true, medium = water))
     }
 
     @Test
     fun `a conductive surface divides the baseline by its conductance`() {
         val metal = ConductiveSurface.METAL.conductance
-        assertEquals(BODY_COOLS_AT / metal, halfLife(isWarming = false, surface = metal))
+        assertEquals(BODY_COOLS_AT / metal.value, halfLife(isWarming = false, surface = metal))
     }
 
     @Test
@@ -126,8 +126,8 @@ class BodyTemperatureTests {
         val water = ConductiveMedium.WATER.conductance
         val metal = ConductiveSurface.METAL.conductance
         assertEquals(
-            (BODY_COOLS_AT / (water * metal)).value,
-            halfLife(isWarming = false, medium = water, surface = metal).value,
+            BODY_COOLS_AT / (water.value * metal.value),
+            halfLife(isWarming = false, medium = water, surface = metal),
             1e-9,
         )
     }
@@ -135,43 +135,43 @@ class BodyTemperatureTests {
     @Test
     fun `lava is effectively instantaneous`() {
         val lava = ConductiveMedium.LAVA.conductance
-        assertTrue(halfLife(isWarming = true, medium = lava).value < 1.0)
+        assertTrue(halfLife(isWarming = true, medium = lava) < 1.0)
     }
 
     @Test
     fun `target is normal anywhere inside the comfort band`() {
-        for (ambient in listOf(COMFORT_LOW, c(22.0), c(25.0), c(28.0), COMFORT_HIGH)) {
-            assertEquals(NORMAL_BODY_TEMPERATURE, target(ambient), "ambient $ambient")
+        for (ambient in listOf(COMFORT_LOW, 22.0, 25.0, 28.0, COMFORT_HIGH)) {
+            assertEquals(c(NORMAL_BODY_TEMPERATURE), target(c(ambient)), "ambient $ambient")
         }
     }
 
     @Test
     fun `target is continuous at both band edges`() {
-        val epsilon = c(1e-6)
+        val epsilon = 1e-6
         assertEquals(
-            target(COMFORT_LOW).value,
-            target(COMFORT_LOW - epsilon).value,
+            target(c(COMFORT_LOW)).value,
+            target(c(COMFORT_LOW - epsilon)).value,
             1e-3
         )
         assertEquals(
-            target(COMFORT_HIGH).value,
-            target(COMFORT_HIGH + epsilon).value,
+            target(c(COMFORT_HIGH)).value,
+            target(c(COMFORT_HIGH + epsilon)).value,
             1e-3
         )
     }
 
     @Test
     fun `target moves with ambient outside the band, but by less than ambient does`() {
-        val coldDrop = (NORMAL_BODY_TEMPERATURE - target(c(0.0))).value
-        assertTrue(coldDrop > 0.0 && coldDrop < COMFORT_LOW.value, "cold drop $coldDrop")
-        val heatRise = (target(c(60.0)) - NORMAL_BODY_TEMPERATURE).value
-        assertTrue(heatRise > 0.0 && heatRise < 60.0 - COMFORT_HIGH.value, "heat rise $heatRise")
+        val coldDrop = NORMAL_BODY_TEMPERATURE - target(c(0.0)).value
+        assertTrue(coldDrop > 0.0 && coldDrop < COMFORT_LOW, "cold drop $coldDrop")
+        val heatRise = target(c(60.0)).value - NORMAL_BODY_TEMPERATURE
+        assertTrue(heatRise > 0.0 && heatRise < 60.0 - COMFORT_HIGH, "heat rise $heatRise")
     }
 
     @Test
     fun `cold leaks through to the core more than heat does`() {
-        val coldDrop = (NORMAL_BODY_TEMPERATURE - target(COMFORT_LOW - c(10.0))).value
-        val heatRise = (target(COMFORT_HIGH + c(10.0)) - NORMAL_BODY_TEMPERATURE).value
+        val coldDrop = NORMAL_BODY_TEMPERATURE - target(c(COMFORT_LOW - 10.0)).value
+        val heatRise = target(c(COMFORT_HIGH + 10.0)).value - NORMAL_BODY_TEMPERATURE
         assertTrue(coldDrop > heatRise)
     }
 
@@ -179,8 +179,8 @@ class BodyTemperatureTests {
     fun `calm wind has unit conductance and leaves the half life unchanged`() {
         assertEquals(1.0, CALM.conductance.value, 1e-9)
         assertEquals(
-            BODY_COOLS_AT.value,
-            halfLife(isWarming = false, wind = CALM.conductance).value,
+            BODY_COOLS_AT,
+            halfLife(isWarming = false, wind = CALM.conductance),
             1e-9
         )
     }
@@ -190,8 +190,8 @@ class BodyTemperatureTests {
         val fiveMetresPerSecond = Wind(Vec3(5.0, 0.0, 0.0))
         assertEquals(1.0 + CHILL * 5.0, fiveMetresPerSecond.conductance.value, 1e-9)
         assertEquals(
-            (BODY_COOLS_AT.value) / (1.0 + CHILL * 5.0),
-            halfLife(isWarming = false, wind = fiveMetresPerSecond.conductance).value,
+            BODY_COOLS_AT / (1.0 + CHILL * 5.0),
+            halfLife(isWarming = false, wind = fiveMetresPerSecond.conductance),
             1e-9
         )
     }
@@ -211,13 +211,13 @@ class BodyTemperatureTests {
         val metal = ConductiveSurface.METAL.conductance
         val wind = Wind(Vec3(5.0, 0.0, 0.0)).conductance
         assertEquals(
-            (BODY_COOLS_AT / (water * metal * wind)).value,
+            BODY_COOLS_AT / (water.value * metal.value * wind.value),
             halfLife(
                 isWarming = false,
                 medium = water,
                 surface = metal,
                 wind = wind
-            ).value,
+            ),
             1e-9,
         )
     }
