@@ -17,6 +17,23 @@ sourceSets {
     }
 }
 
+configurations {
+    commonGametest { canBeResolved = true }
+    commonGametestClasses { canBeResolved = true }
+}
+
+dependencies {
+    commonGametest(project(path: common_project.path, configuration: 'commonGametest'))
+    commonGametestClasses(project(path: common_project.path, configuration: 'commonGametestClasses'))
+}
+
+sourceSets.gametest.compileClasspath += configurations.commonGametestClasses
+
+tasks.named('compileGametestKotlin') {
+    dependsOn(configurations.commonGametest)
+    source(configurations.commonGametest.asFileTree.matching { include '**/*.kt' })
+}
+
 loom {
     def aw = common_project.file("src/main/resources/${mod_id}.accesswidener")
     if (aw.exists()) {

@@ -10,6 +10,7 @@ import net.minecraft.world.level.chunk.LevelChunk
 public enum class PlatformName {
     FABRIC,
     NEOFORGE,
+    TEST, // for unit tests
 }
 
 public fun PlatformName.id(): String = this.name.lowercase()

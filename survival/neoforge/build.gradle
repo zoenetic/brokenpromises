@@ -12,9 +12,31 @@ repositories {
 }
 
 dependencies {
-    // Kotlin language adapter + stdlib for NeoForge. Users must install it as a
-    // separate mod (or jarJar it here) - the stdlib is not on the game classpath.
     implementation("dev.nyon:KotlinLangForge:${klf_version}")
+}
+
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+    }
+}
+
+configurations {
+    commonGametest { canBeResolved = true }
+    commonGametestClasses { canBeResolved = true }
+}
+
+dependencies {
+    commonGametest(project(path: common_project.path, configuration: 'commonGametest'))
+    commonGametestClasses(project(path: common_project.path, configuration: 'commonGametestClasses'))
+}
+
+sourceSets.gametest.compileClasspath += configurations.commonGametestClasses
+
+tasks.named('compileGametestKotlin') {
+    dependsOn(configurations.commonGametest)
+    source(configurations.commonGametest.asFileTree.matching { include '**/*.kt' })
 }
 
 neoForge {
@@ -38,6 +60,10 @@ neoForge {
             server()
             gameDirectory = this.mkdir(this.file('runs/server'))
         }
+        gametest {
+            type = 'gameTestServer'
+            gameDirectory = this.mkdir(this.file('runs/gametest'))
+        }
         data {
             clientData()
             gameDirectory = this.mkdir(this.file('runs/data'))
@@ -50,6 +76,7 @@ neoForge {
     mods {
         "${mod_id}" {
             sourceSet sourceSets.main
+            sourceSet sourceSets.gametest
         }
     }
 }

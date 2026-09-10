@@ -1,0 +1,188 @@
+package dev.zoenetic.brokenpromises.survival.gametest
+
+import dev.zoenetic.brokenpromises.survival.Survival
+import dev.zoenetic.brokenpromises.survival.platform.PlatformName
+import dev.zoenetic.brokenpromises.survival.probe.getHumidity
+import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
+import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
+import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_HIGH
+import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_LOW
+import dev.zoenetic.brokenpromises.survival.vitals.Vitals
+import net.minecraft.core.BlockPos
+import net.minecraft.gametest.framework.GameTestHelper
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.block.Blocks
+import kotlin.math.abs
+
+data class SurvivalTest(
+    val name: String,
+    val maxTicks: Int,
+    val run: (GameTestHelper) -> Unit,
+)
+
+object SurvivalTests {
+
+    @Suppress("DEPRECATION", "removal")
+    private fun GameTestHelper.playerAt(relative: BlockPos): ServerPlayer {
+        val player = makeMockServerPlayerInLevel()
+        val absolute = absolutePos(relative)
+        player.snapTo(absolute.x + 0.5, absolute.y.toDouble(), absolute.z + 0.5)
+        return player
+    }
+
+    fun aRealServerLevelIsAvailable(helper: GameTestHelper) {
+        check(!helper.level.isClientSide) { "expected a server level" }
+        check(Survival.platform.name in setOf(PlatformName.FABRIC, PlatformName.NEOFORGE)) {
+            "expected a real loader platform, got ${Survival.platform.name}"
+        }
+        helper.succeed()
+    }
+
+    fun conditionsComeFromThePlayersOwnChunk(helper: GameTestHelper) {
+        val player = helper.playerAt(BlockPos(1, 2, 1))
+
+        val conditions = PlayerConditions.get(player)
+        val ownChunk = helper.level.getChunkAt(player.blockPosition())
+        val expected = ownChunk.getHumidity()
+
+        if (conditions.humidity != expected) {
+            throw helper.assertionException(
+                "conditions read humidity ${conditions.humidity.value}, but the player's own " +
+                        "chunk ${ownChunk.pos} reads ${expected.value}"
+            )
+        }
+        helper.succeed()
+    }
+
+    fun conditionsRecordTheCurrentGameTime(helper: GameTestHelper) {
+        val player = helper.playerAt(BlockPos(1, 2, 1))
+        val conditions = PlayerConditions.get(player)
+        if (conditions.time.value != helper.level.gameTime) {
+            throw helper.assertionException(
+                "conditions recorded tick ${conditions.time.value}, level is at ${helper.level.gameTime}"
+            )
+        }
+        helper.succeed()
+    }
+
+    fun theLevelTickStoresConditionsForPlayersInTheWorld(helper: GameTestHelper) {
+        val player = helper.playerAt(BlockPos(1, 2, 1))
+
+        PlayerConditions.tick(helper.level)
+
+        val stored = Survival.platform.playerConditions.get(player)
+        if (stored.time.value != helper.level.gameTime) {
+            throw helper.assertionException(
+                "after a level tick the player's stored conditions are at tick " +
+                        "${stored.time.value}, level is at ${helper.level.gameTime}"
+            )
+        }
+        helper.succeed()
+    }
+
+    fun theProductionLoopDrivesBodyTemperature(helper: GameTestHelper) {
+        val player = helper.playerAt(BlockPos(1, 2, 1))
+        val ambient = PlayerConditions.get(player).temperature
+        val start = Vitals.get(player).bodyTemperature.value.value
+
+        helper.startSequence()
+            .thenExecuteFor(100) { /* the mod's own tick handlers do the work */ }
+            .thenExecute {
+                val now = Vitals.get(player).bodyTemperature.value.value
+                val drift = now - start
+                val where = "ambient ${ambient.value}C, body $start -> $now (drift $drift)"
+                when {
+                    ambient < COMFORT_LOW -> if (drift >= 0.0) throw helper.assertionException(
+                        "below the comfort band the body should cool: $where"
+                    )
+
+                    ambient > COMFORT_HIGH -> if (drift <= 0.0) throw helper.assertionException(
+                        "above the comfort band the body should warm: $where"
+                    )
+
+                    else -> if (abs(drift) > 1e-6) throw helper.assertionException(
+                        "inside the comfort band the body should hold steady: $where"
+                    )
+                }
+            }
+            .thenSucceed()
+    }
+
+    fun placingACampfireRegistersAHeatSource(helper: GameTestHelper) {
+        val relative = BlockPos(1, 1, 1)
+        helper.setBlock(relative, Blocks.CAMPFIRE)
+
+        val absolute = helper.absolutePos(relative)
+        val index = ChunkHeatSources.of(helper.level.getChunkAt(absolute))
+        if (!index.containsKey(absolute.asLong())) {
+            throw helper.assertionException(
+                "campfire at $absolute never reached the chunk's heat index (LevelChunkMixin?)"
+            )
+        }
+        helper.succeed()
+    }
+
+    fun breakingACampfireDeregistersTheHeatSource(helper: GameTestHelper) {
+        val relative = BlockPos(1, 1, 1)
+        helper.setBlock(relative, Blocks.CAMPFIRE)
+        helper.setBlock(relative, Blocks.AIR)
+
+        val absolute = helper.absolutePos(relative)
+        val index = ChunkHeatSources.of(helper.level.getChunkAt(absolute))
+        if (index.containsKey(absolute.asLong())) {
+            throw helper.assertionException("campfire at $absolute is still in the heat index")
+        }
+        helper.succeed()
+    }
+
+    fun aNearbyCampfireIsFoundAsAHeatSource(helper: GameTestHelper) {
+        val campfire = BlockPos(1, 1, 1)
+        helper.setBlock(campfire, Blocks.CAMPFIRE)
+        val player = helper.playerAt(BlockPos(2, 2, 1))
+
+        val absolute = helper.absolutePos(campfire)
+        val sources = ChunkHeatSources.around(player)
+        if (sources.none { it.position == absolute }) {
+            throw helper.assertionException(
+                "campfire at $absolute was not among the ${sources.size} sources found " +
+                        "around the player at ${player.blockPosition()}"
+            )
+        }
+        helper.succeed()
+    }
+
+    val ALL: List<SurvivalTest> = listOf(
+        SurvivalTest("a_real_server_level_is_available", 20, ::aRealServerLevelIsAvailable),
+        SurvivalTest(
+            "conditions_come_from_the_players_own_chunk",
+            20,
+            ::conditionsComeFromThePlayersOwnChunk
+        ),
+        SurvivalTest(
+            "conditions_record_the_current_game_time",
+            20,
+            ::conditionsRecordTheCurrentGameTime
+        ),
+        SurvivalTest(
+            "the_level_tick_stores_conditions",
+            20,
+            ::theLevelTickStoresConditionsForPlayersInTheWorld
+        ),
+        SurvivalTest(
+            "the_production_loop_drives_body_temperature",
+            200,
+            ::theProductionLoopDrivesBodyTemperature
+        ),
+        SurvivalTest(
+            "placing_a_campfire_registers_a_heat_source",
+            20,
+            ::placingACampfireRegistersAHeatSource
+        ),
+        SurvivalTest(
+            "breaking_a_campfire_deregisters_it",
+            20,
+            ::breakingACampfireDeregistersTheHeatSource
+        ),
+        SurvivalTest("a_nearby_campfire_is_found", 20, ::aNearbyCampfireIsFoundAsAHeatSource),
+    )
+}

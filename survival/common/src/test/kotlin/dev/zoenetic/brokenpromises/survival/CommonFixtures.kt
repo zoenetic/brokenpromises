@@ -2,6 +2,7 @@ package dev.zoenetic.brokenpromises.survival
 
 import dev.zoenetic.brokenpromises.survival.platform.ChunkView
 import dev.zoenetic.brokenpromises.survival.platform.Platform
+import dev.zoenetic.brokenpromises.survival.platform.PlatformName
 import dev.zoenetic.brokenpromises.survival.platform.PlayerStore
 import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
 import dev.zoenetic.brokenpromises.survival.probe.temperatureFromNoise
@@ -42,7 +43,7 @@ import org.mockito.Mockito.*
 import java.util.*
 
 object TestPlatform : Platform {
-    override val name: String = "Test"
+    override val name: PlatformName = PlatformName.TEST
     override val isDevelopmentEnvironment: Boolean = false
     override fun isModLoaded(modId: String): Boolean = false
 

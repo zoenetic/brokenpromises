@@ -4,6 +4,13 @@ plugins {
     id "org.jetbrains.kotlin.kapt"
 }
 
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+    }
+}
+
 neoForge {
     neoFormVersion = neo_form_version
     def at = file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -11,6 +18,7 @@ neoForge {
         accessTransformers.from(at.absolutePath)
     }
     addModdingDependenciesTo(sourceSets.test)
+    addModdingDependenciesTo(sourceSets.gametest)
 }
 
 dependencies {
@@ -29,12 +37,21 @@ configurations {
     commonJava { canBeResolved = false; canBeConsumed = true }
     commonKotlin { canBeResolved = false; canBeConsumed = true }
     commonResources { canBeResolved = false; canBeConsumed = true }
+    commonGametest { canBeResolved = false; canBeConsumed = true }
+    commonGametestClasses { canBeResolved = false; canBeConsumed = true }
+}
+
+tasks.register('gametestJar', Jar) {
+    archiveClassifier = 'gametest'
+    from sourceSets.gametest.output
 }
 
 artifacts {
     commonJava file('src/main/java')
     commonKotlin file('src/main/kotlin')
     commonResources file('src/main/resources')
+    commonGametest file('src/gametest/kotlin')
+    commonGametestClasses tasks.named('gametestJar')
 }
 
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
