@@ -1,9 +1,13 @@
 package dev.zoenetic.brokenpromises.survival.effects.player
 
+import com.mojang.serialization.Codec
 import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.Survival.MOD_ID
 import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.vitals.NORMAL_BODY_TEMPERATURE
+import io.netty.buffer.ByteBuf
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.network.codec.StreamCodec
 import net.minecraft.resources.Identifier
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.ai.attributes.AttributeModifier
@@ -24,9 +28,9 @@ private val BODY_TEMPERATURE_SPEED_REDUCTION =
 
 @JvmInline
 public value class SpeedPenalty(public val value: Double) {
-    
+
     public fun tick(player: ServerPlayer) {
-        val vitals = Survival.platform.vitals.get(player)
+        val vitals = Survival.platform.vitals.get(player) ?: return
         val penalty = forTemperature(vitals.bodyTemperature.value)
         val attribute = player.getAttribute(MOVEMENT_SPEED) ?: return
         if (penalty.value == 0.0) {
@@ -58,5 +62,19 @@ public value class SpeedPenalty(public val value: Double) {
                 )
             return SpeedPenalty(SPEED_PENALTY_MAX.value * progress)
         }
+
+        public val CODEC: Codec<SpeedPenalty> =
+            Codec.DOUBLE.xmap(
+                ::SpeedPenalty,
+                SpeedPenalty::value
+            )
+
+        public val STREAM_CODEC: StreamCodec<ByteBuf, SpeedPenalty> =
+            ByteBufCodecs.DOUBLE.map(
+                ::SpeedPenalty,
+                SpeedPenalty::value
+            )
+
+        public val DEFAULT: SpeedPenalty = SpeedPenalty(0.0)
     }
 }

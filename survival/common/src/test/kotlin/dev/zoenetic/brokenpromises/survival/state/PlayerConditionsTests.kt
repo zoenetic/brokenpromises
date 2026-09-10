@@ -4,24 +4,28 @@ import dev.zoenetic.brokenpromises.survival.CommonFixtures
 import dev.zoenetic.brokenpromises.survival.CommonFixtures.coldestSite
 import dev.zoenetic.brokenpromises.survival.CommonFixtures.hottestSite
 import dev.zoenetic.brokenpromises.survival.CommonFixtures.seaLevelCentreOf
+import dev.zoenetic.brokenpromises.survival.units.Time
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.ChunkPos
 import org.junit.jupiter.api.BeforeAll
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class PlayerConditionsTests {
+
+    private fun CommonFixtures.FakeWorld.sample(player: ServerPlayer): PlayerConditions =
+        PlayerConditions.getNew(player, Time(level.gameTime))
+
+    private fun CommonFixtures.FakeWorld.sampleAt(pos: BlockPos): PlayerConditions =
+        sample(playerAt(pos))
 
     @Test
     fun `the climate chunk consulted is the one containing the player`() {
         val world = CommonFixtures.fakeWorld()
         val standingOn = BlockPos(1234, CommonFixtures.SEA_LEVEL, -5678)
-        val player = world.playerAt(standingOn)
 
-        val _ = PlayerConditions.get(player)
+        val _ = world.sample(world.playerAt(standingOn))
 
         val expected = ChunkPos(
             SectionPos.blockToSectionCoord(standingOn.x),
@@ -38,10 +42,7 @@ class PlayerConditionsTests {
     @Test
     fun `conditions report the climate of the player's own column`() {
         val world = CommonFixtures.fakeWorld()
-        val player = world.playerAt(seaLevelCentreOf(hottestSite.pos))
-
-        val conditions = PlayerConditions.get(player)
-
+        val conditions = world.sampleAt(seaLevelCentreOf(hottestSite.pos))
         assertEquals(
             hottestSite.temperature.value,
             conditions.temperature.value,
@@ -53,8 +54,7 @@ class PlayerConditionsTests {
 
     @Test
     fun `standing somewhere hot reads hot`() {
-        val world = CommonFixtures.fakeWorld()
-        val conditions = PlayerConditions.get(world.playerAt(seaLevelCentreOf(hottestSite.pos)))
+        val conditions = CommonFixtures.fakeWorld().sampleAt(seaLevelCentreOf(hottestSite.pos))
         assertTrue(
             conditions.temperature.value > 25.0,
             "the hottest column in the world read ${conditions.temperature.value}°C"
@@ -63,8 +63,7 @@ class PlayerConditionsTests {
 
     @Test
     fun `standing somewhere cold reads cold`() {
-        val world = CommonFixtures.fakeWorld()
-        val conditions = PlayerConditions.get(world.playerAt(seaLevelCentreOf(coldestSite.pos)))
+        val conditions = CommonFixtures.fakeWorld().sampleAt(seaLevelCentreOf(coldestSite.pos))
         assertTrue(
             conditions.temperature.value < 5.0,
             "the coldest column in the world read ${conditions.temperature.value}°C"
@@ -74,8 +73,8 @@ class PlayerConditionsTests {
     @Test
     fun `moving between climates changes the reported temperature`() {
         val world = CommonFixtures.fakeWorld()
-        val hot = PlayerConditions.get(world.playerAt(seaLevelCentreOf(hottestSite.pos)))
-        val cold = PlayerConditions.get(world.playerAt(seaLevelCentreOf(coldestSite.pos)))
+        val hot = world.sampleAt(seaLevelCentreOf(hottestSite.pos))
+        val cold = world.sampleAt(seaLevelCentreOf(coldestSite.pos))
         assertTrue(
             hot.temperature.value > cold.temperature.value,
             "hot ${hot.temperature.value}°C should exceed cold ${cold.temperature.value}°C"
@@ -86,8 +85,8 @@ class PlayerConditionsTests {
     fun `altitude cools the reading above sea level`() {
         val world = CommonFixtures.fakeWorld()
         val ground = seaLevelCentreOf(hottestSite.pos)
-        val atGround = PlayerConditions.get(world.playerAt(ground))
-        val onAPeak = PlayerConditions.get(world.playerAt(ground.above(200)))
+        val atGround = world.sampleAt(ground)
+        val onAPeak = world.sampleAt(ground.above(200))
         assertTrue(
             onAPeak.temperature.value < atGround.temperature.value,
             "200 blocks up read ${onAPeak.temperature.value}°C " +
@@ -101,8 +100,8 @@ class PlayerConditionsTests {
         val sealed = CommonFixtures.fakeWorld(skyBrightness = 0, clockTime = 9000L)
         val open = CommonFixtures.fakeWorld(skyBrightness = 15, clockTime = 9000L)
         assertNotEquals(
-            PlayerConditions.get(sealed.playerAt(pos)).temperature.value,
-            PlayerConditions.get(open.playerAt(pos)).temperature.value,
+            sealed.sampleAt(pos).temperature.value,
+            open.sampleAt(pos).temperature.value,
             "sky brightness should feed the diurnal swing"
         )
     }
@@ -117,8 +116,7 @@ class PlayerConditionsTests {
             skyBrightness = 15, gameTime = 500_000L, clockTime = 21000L
         )
         assertTrue(
-            PlayerConditions.get(warmest.playerAt(pos)).temperature.value >
-                    PlayerConditions.get(coldest.playerAt(pos)).temperature.value,
+            warmest.sampleAt(pos).temperature.value > coldest.sampleAt(pos).temperature.value,
             "mid-afternoon should beat pre-dawn even at the same game time"
         )
     }
@@ -126,8 +124,22 @@ class PlayerConditionsTests {
     @Test
     fun `conditions record the monotonic game time, not the day clock`() {
         val world = CommonFixtures.fakeWorld(gameTime = 500_000L, clockTime = 9000L)
-        val conditions = PlayerConditions.get(world.playerAt(seaLevelCentreOf(hottestSite.pos)))
+        val conditions = world.sampleAt(seaLevelCentreOf(hottestSite.pos))
         assertEquals(500_000L, conditions.time.value, "elapsed needs a clock that never rewinds")
+    }
+
+    @Test
+    fun `a first tick stores conditions the store can read back`() {
+        val world = CommonFixtures.fakeWorld(gameTime = 500_000L)
+        val player = world.playerAt(seaLevelCentreOf(hottestSite.pos))
+
+        PlayerConditions.tick(player, Time(world.level.gameTime))
+
+        val stored = assertNotNull(
+            PlayerConditions.get(player),
+            "a player's first tick should leave conditions in the store, not null"
+        )
+        assertEquals(500_000L, stored.time.value, "stored conditions should be stamped now")
     }
 
     companion object {

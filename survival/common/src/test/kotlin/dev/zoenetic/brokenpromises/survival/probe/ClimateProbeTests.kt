@@ -1,10 +1,6 @@
 package dev.zoenetic.brokenpromises.survival.probe
 
-import dev.zoenetic.brokenpromises.survival.units.Altitude
-import dev.zoenetic.brokenpromises.survival.units.Celsius
-import dev.zoenetic.brokenpromises.survival.units.Humidity
-import dev.zoenetic.brokenpromises.survival.units.Sky
-import dev.zoenetic.brokenpromises.survival.units.Ticks
+import dev.zoenetic.brokenpromises.survival.units.*
 import net.minecraft.SharedConstants
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -86,10 +82,10 @@ class ClimateProbeTests {
 
     private val dayTicks = SharedConstants.TICKS_PER_GAME_DAY.toLong()
     private val mean = Celsius(10.0)
-    private val warmest = Ticks(WARMEST_TICK)
+    private val warmest = Time(WARMEST_TICK)
 
     private fun Celsius.atTime(t: Long, sky: Sky, humidity: Humidity) =
-        adjustForTimeOfDay(Ticks(t), sky, humidity).value
+        adjustForTimeOfDay(Time(t), sky, humidity).value
 
     @Test
     fun `the warmest tick is exactly the dry swing above the mean in dry air`() {

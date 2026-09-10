@@ -16,31 +16,19 @@ public const val SHIVER_FREQUENCY: Double = 2.0
 private const val SHIVER_YAW_RATIO = 1.37
 private const val SHIVER_YAW_SCALE = 0.25
 
-/**
- * Carries a player's shiver intensity across the render-state boundary.
- *
- * `LivingEntityRenderer.setupRotations` is handed a render state and nothing
- * else — a render state deliberately holds no reference back to its entity — so
- * the intensity has to be stashed on the state during `extractRenderState`, the
- * one point where both the entity and its state are in scope.
- *
- * Implemented by `LivingEntityRenderStateMixin`.
- */
 public interface ShiverState {
     public fun `brokenpromises$getShiver`(): Double
     public fun `brokenpromises$setShiver`(shiver: Double)
 }
 
-/** Client-only. Applies body temperature to what the renderer draws. */
+// client only
 public object ShiverRenderer {
 
-    /** Derive this frame's shiver for [entity] and stash it on [state]. */
     public fun capture(entity: LivingEntity, state: LivingEntityRenderState) {
         val intensity = if (entity is Player) intensityOf(entity) else 0.0
         (state as ShiverState).`brokenpromises$setShiver`(intensity)
     }
 
-    /** Wobble the body's yaw by the intensity [capture] left on [state]. */
     public fun applyToBodyRotation(bodyRot: Float, state: LivingEntityRenderState): Float {
         val intensity = (state as ShiverState).`brokenpromises$getShiver`()
         if (intensity <= 0.0) return bodyRot
@@ -49,7 +37,6 @@ public object ShiverRenderer {
         return bodyRot + wobble.toFloat()
     }
 
-    /** Wobble the local player's own hands, at frame rather than tick rate. */
     public fun applyToHeldItems(player: LocalPlayer, frameInterp: Float, poseStack: PoseStack) {
         val intensity = intensityOf(player)
         if (intensity <= 0.0) return
@@ -61,6 +48,8 @@ public object ShiverRenderer {
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw.toFloat()))
     }
 
-    private fun intensityOf(player: Player): Double =
-        shiverIntensity(Survival.platform.vitals.get(player).bodyTemperature.value)
+    private fun intensityOf(player: Player): Double {
+        val vitals = Survival.platform.vitals.get(player) ?: return 0.0
+        return shiverIntensity(vitals.bodyTemperature.value)
+    }
 }

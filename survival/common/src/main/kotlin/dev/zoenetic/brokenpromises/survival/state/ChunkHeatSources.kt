@@ -6,8 +6,8 @@ import dev.zoenetic.brokenpromises.survival.units.Power
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
-import net.minecraft.server.level.ServerLevel
-import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
@@ -53,7 +53,7 @@ public fun BlockState.isLit(): Boolean {
 public typealias HeatSourceIndex = Long2ObjectOpenHashMap<Power>
 
 public object ChunkHeatSources {
-    public fun around(player: ServerPlayer): List<HeatSource> {
+    public fun around(player: Player): List<HeatSource> {
         val level = player.level()
         val pos = player.blockPosition()
         val r = MAX_HEAT_RADIUS
@@ -68,6 +68,10 @@ public object ChunkHeatSources {
             for (chunkZ in minChunkZ..maxChunkZ) {
                 val chunk = level.getChunk(chunkX, chunkZ)
                 val chunkSources = Survival.platform.heatSources.get(chunk)
+                if (chunkSources == null) {
+                    rebuild(chunk)
+                    continue
+                }
                 for ((pos, power) in chunkSources) {
                     val blockPos = BlockPos.of(pos)
                     val state = chunk.getBlockState(blockPos)
@@ -79,13 +83,13 @@ public object ChunkHeatSources {
         return sources
     }
 
-    public fun of(chunk: LevelChunk): HeatSourceIndex {
+    public fun of(chunk: LevelChunk): HeatSourceIndex? {
         return Survival.platform.heatSources.get(chunk)
     }
 
     public fun rebuild(chunk: LevelChunk) {
         if (chunk.level.isClientSide) return
-        val index = Survival.platform.heatSources.get(chunk)
+        val index = Survival.platform.heatSources.get(chunk) ?: HeatSourceIndex()
         for (sectionY in chunk.minSectionY..chunk.maxSectionY) {
             val section = chunk.getSection(chunk.getSectionIndexFromSectionY(sectionY))
             if (section.hasOnlyAir()) continue
@@ -115,7 +119,7 @@ public object ChunkHeatSources {
 
     public fun onBlockChanged(chunk: LevelChunk, pos: BlockPos, state: BlockState) {
         if (!state.isHeatSourceBlock()) return removeHeatSource(chunk, pos)
-        val index = Survival.platform.heatSources.get(chunk)
+        val index = Survival.platform.heatSources.get(chunk) ?: HeatSourceIndex()
         val power = HEAT_SOURCE_BLOCKS[state.block]
         if (power == null) {
             Survival.LOGGER.warn("no power found for heat source block: ${state.block}")
@@ -125,17 +129,16 @@ public object ChunkHeatSources {
     }
 
     public fun removeHeatSource(chunk: LevelChunk, pos: BlockPos) {
-        val index: HeatSourceIndex = Survival.platform.heatSources.get(chunk)
-        index.remove(pos.asLong())
+        Survival.platform.heatSources.get(chunk)?.remove(pos.asLong())
     }
 }
 
-internal fun getMinPos(level: ServerLevel, pos: BlockPos, r: Int): BlockPos {
+internal fun getMinPos(level: Level, pos: BlockPos, r: Int): BlockPos {
     val minY = (pos.y - r).coerceAtLeast(level.minY)
     return BlockPos(pos.x - r, minY, pos.z - r)
 }
 
-internal fun getMaxPos(level: ServerLevel, pos: BlockPos, r: Int): BlockPos {
+internal fun getMaxPos(level: Level, pos: BlockPos, r: Int): BlockPos {
     val maxY = (pos.y + r).coerceAtMost(level.maxY)
     return BlockPos(pos.x + r, maxY, pos.z + r)
 }

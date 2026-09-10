@@ -1,11 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.fabric
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.commands.rootCommand
-import dev.zoenetic.brokenpromises.survival.commands.setBodyTemperatureCommand
-import dev.zoenetic.brokenpromises.survival.commands.survivalCommand
-import dev.zoenetic.brokenpromises.survival.debug.watchCommand
-import dev.zoenetic.brokenpromises.survival.debug.watchers
+import dev.zoenetic.brokenpromises.survival.debug.*
 import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals

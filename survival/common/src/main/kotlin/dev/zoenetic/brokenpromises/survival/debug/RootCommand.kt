@@ -1,4 +1,4 @@
-package dev.zoenetic.brokenpromises.survival.commands
+package dev.zoenetic.brokenpromises.survival.debug
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import dev.zoenetic.brokenpromises.survival.Survival.NAMESPACE

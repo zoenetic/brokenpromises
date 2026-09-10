@@ -1,7 +1,8 @@
 package dev.zoenetic.brokenpromises.survival.debug
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.units.Ticks
+import dev.zoenetic.brokenpromises.survival.units.Duration
+import dev.zoenetic.brokenpromises.survival.units.Time
 import net.minecraft.network.chat.Component
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
@@ -32,11 +33,11 @@ public data class WatcherRegistry(val registry: MutableSet<UUID> = mutableSetOf(
             if (players.contains(uuid)) {
                 val player = players[uuid] ?: continue
                 val level = player.level()
-                val time = Ticks(level.gameTime)
-                val conditions = Survival.platform.playerConditions.get(player)
-                val vitals = Survival.platform.vitals.get(player)
+                val time = Time(level.gameTime)
+                val conditions = Survival.platform.playerConditions.get(player) ?: continue
+                val vitals = Survival.platform.vitals.get(player) ?: continue
                 val speed = player.getAttributeValue(MOVEMENT_SPEED)
-                val elapsed = time - conditions.time
+                val elapsed: Duration = time - conditions.time
                 if (elapsed.value == 0L) {
                     player.sendSystemMessage(
                         Component.literal(

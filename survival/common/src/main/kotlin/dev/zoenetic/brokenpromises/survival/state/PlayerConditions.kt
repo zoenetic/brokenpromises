@@ -8,48 +8,38 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 
-private val INTERVAL = Ticks(20L)
+private val INTERVAL = Duration(20L)
 
 public class PlayerConditions(
-    public val humidity: Humidity = Humidity(0.5),
-    public val isUnderOpenSky: Boolean = true,
-    public val sky: Sky = Sky(0.0),
-    public val temperature: Celsius = Celsius(24.0),
-    public val wind: Wind = Wind(Vec3.ZERO),
-    public val time: Ticks = Ticks(0L),
+    public val humidity: Humidity,
+    public val isUnderOpenSky: Boolean,
+    public val sky: Sky,
+    public val temperature: Celsius,
+    public val wind: Wind,
+    public val time: Time,
 ) {
     public companion object {
 
-        public fun latest(player: ServerPlayer): PlayerConditions {
-            return Survival.platform.playerConditions.get(player)
-        }
+        public fun get(player: ServerPlayer): PlayerConditions? =
+            Survival.platform.playerConditions.get(player)
 
-        public fun get(player: ServerPlayer): PlayerConditions {
+        public fun getNew(player: ServerPlayer, time: Time): PlayerConditions {
             val level = player.level()
-            val previous = Survival.platform.playerConditions.get(player)
-            val previousTime = previous.time
-            val time = Ticks(level.gameTime)
-            val elapsed = time - previousTime
-            if (elapsed < INTERVAL) return previous
             val pos = player.blockPosition()
-            val body = player.boundingBox.center
             val chunk = level.getChunkAt(pos)
-            val clock = Ticks(level.overworldClockTime)
             val chunkClimate = chunk.getClimate()
-            val sources = ChunkHeatSources.around(player)
-            val heat = sumHeatSources(body, sources)
+            val heat = sumHeatSources(player.boundingBox.center, ChunkHeatSources.around(player))
             val sky = player.getSky()
-            val temperature = chunk.getTemperature(
-                Altitude(pos.y - level.seaLevel),
-                chunkClimate.humidity, sky, clock
-            )
             return PlayerConditions(
                 chunkClimate.humidity,
                 player.isUnderOpenSky(),
                 sky,
-                temperature + heat,
+                chunk.getTemperature(
+                    Altitude(pos.y - level.seaLevel),
+                    chunkClimate.humidity, sky, Time(level.overworldClockTime)
+                ) + heat,
                 chunk.getWind(),
-                time,
+                time
             )
         }
 
@@ -59,23 +49,27 @@ public class PlayerConditions(
 
         public fun tick(level: Level) {
             if (level !is ServerLevel) return
-            val players = level.players()
-            players.forEach { player ->
-                tick(player)
-            }
+            val time = Time(level.gameTime)
+            level.players().forEach { player -> tick(player, time) }
         }
 
-        public fun tick(player: ServerPlayer) {
-            val conditions = get(player)
+        public fun tick(player: ServerPlayer, time: Time) {
+            val previous = get(player)
+            if (previous != null) {
+                val elapsed = time - previous.time
+                if (elapsed < INTERVAL) return
+            }
+            val conditions = getNew(player, time)
             set(player, conditions)
         }
 
-        public val DEFAULT: PlayerConditions = PlayerConditions(
-            Humidity(0.5),
+        public val EMPTY: PlayerConditions = PlayerConditions(
+            humidity = Humidity(0.5),
             isUnderOpenSky = false,
-            sky = Sky(0.0),
+            sky = Sky(1.0),
             temperature = Celsius(20.0),
             wind = Wind(Vec3.ZERO),
+            time = Time(0L),
         )
     }
 }

@@ -1,7 +1,10 @@
 package dev.zoenetic.brokenpromises.survival.neoforge
 
 import dev.zoenetic.brokenpromises.survival.Survival.MOD_ID
-import dev.zoenetic.brokenpromises.survival.platform.*
+import dev.zoenetic.brokenpromises.survival.platform.ChunkView
+import dev.zoenetic.brokenpromises.survival.platform.Platform
+import dev.zoenetic.brokenpromises.survival.platform.PlayerStore
+import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
 import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
@@ -12,7 +15,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries
 import java.util.function.Supplier
 
 public object NeoForgePlatform : Platform {
-    override val name: PlatformName = PlatformName.NEOFORGE
+    override val name: String = "neoforge"
 
     override val isDevelopmentEnvironment: Boolean
         get() = !FMLLoader.getCurrent().isProduction
@@ -28,7 +31,7 @@ public object NeoForgePlatform : Platform {
         )
 
     override val heatSources: ChunkView<HeatSourceIndex> = NeoForgeChunkView(
-        ATTACHMENTS.register(Store.CHUNK_HEAT_SOURCES.id(), Supplier {
+        ATTACHMENTS.register("chunk_heat_sources", Supplier {
             AttachmentType.builder(
                 Supplier { HeatSourceIndex() }
             ).build()
@@ -37,14 +40,14 @@ public object NeoForgePlatform : Platform {
 
     override val playerConditions: PlayerStore<PlayerConditions> =
         NeoForgePlayerStore(
-            ATTACHMENTS.register(Store.PLAYER_CONDITIONS.id(), Supplier {
-                AttachmentType.builder(Supplier { PlayerConditions() })
+            ATTACHMENTS.register("player_conditions", Supplier {
+                AttachmentType.builder(Supplier { PlayerConditions.EMPTY })
                     .build()
             })
         )
 
     override val vitals: SyncedPlayerStore<Vitals> = NeoForgeSyncedPlayerStore(
-        ATTACHMENTS.register(Store.PLAYER_VITALS.id(), Supplier {
+        ATTACHMENTS.register("vitals", Supplier {
             AttachmentType.builder(Supplier { Vitals.DEFAULT })
                 .serialize(Vitals.CODEC.fieldOf("vitals"))
                 .sync(Vitals.STREAM_CODEC)

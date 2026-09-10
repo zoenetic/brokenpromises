@@ -1,5 +1,6 @@
 package dev.zoenetic.brokenpromises.survival.state
 
+import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Power
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
@@ -15,7 +16,7 @@ class HeatSourcesTests {
 
     @Test
     fun `no sources contribute nothing`() {
-        assertEquals(0.0, sumHeatSources(body, mutableListOf()))
+        assertEquals(Celsius(0.0), sumHeatSources(body, mutableListOf()))
     }
 
     @Test
@@ -32,14 +33,14 @@ class HeatSourcesTests {
         val b = HeatSource(BlockPos(0, 0, 3), power)
         val one = sumHeatSources(body, sources(a))
         val two = sumHeatSources(body, sources(a, b))
-        assertEquals(2 * one, two, 1e-9, "expected $two to be twice $one")
+        assertEquals(2 * one.value, two.value, 1e-9, "expected $two to be twice $one")
     }
 
     @Test
     fun `a source at zero distance contributes exactly power over the softening`() {
         val power = Power(10.0)
         val atBody = sources(HeatSource(BlockPos(0, 0, 0), power))
-        assertEquals(power.value / HEAT_SOURCE_SOFTENING, sumHeatSources(body, atBody), 1e-9)
+        assertEquals(power.value / HEAT_SOURCE_SOFTENING, sumHeatSources(body, atBody).value, 1e-9)
     }
 
     @Test
@@ -62,7 +63,7 @@ class HeatSourcesTests {
         val distance = 20.0
         val softened = sumHeatSources(Vec3(0.5, 0.5, 0.5 + distance), source)
         val inverseSquare = power.value / (distance * distance)
-        val relativeError = abs(softened - inverseSquare) / inverseSquare
+        val relativeError = abs(softened.value - inverseSquare) / inverseSquare
         assertTrue(
             relativeError < 0.005,
             "at $distance blocks softening should be negligible; relative error $relativeError"

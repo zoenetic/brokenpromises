@@ -7,10 +7,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.chunk.LevelChunk
 import org.junit.jupiter.api.BeforeAll
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class ChunkHeatSourcesTests {
 
@@ -30,6 +27,11 @@ class ChunkHeatSourcesTests {
     }
 
     private fun chunk() = CommonFixtures.chunk(CommonFixtures.fakeLevel())
+
+    private fun indexOf(chunk: LevelChunk): HeatSourceIndex = assertNotNull(
+        ChunkHeatSources.of(chunk),
+        "no heat index registered for chunk ${chunk.pos}"
+    )
 
     @Test
     fun `lava counts as a lit heat source`() {
@@ -52,7 +54,7 @@ class ChunkHeatSourcesTests {
     fun `an empty chunk has no heat sources`() {
         val chunk = chunk()
         ChunkHeatSources.rebuild(chunk)
-        assertTrue(ChunkHeatSources.of(chunk).isEmpty())
+        assertTrue(indexOf(chunk).isEmpty())
     }
 
     @Test
@@ -60,7 +62,7 @@ class ChunkHeatSourcesTests {
         val chunk = chunk()
         chunk.place(inChunk, campfire)
         ChunkHeatSources.rebuild(chunk)
-        val index = ChunkHeatSources.of(chunk)
+        val index = indexOf(chunk)
         assertEquals(1, index.size)
         assertEquals(HEAT_SOURCE_BLOCKS[Blocks.CAMPFIRE], index[inChunk.asLong()])
     }
@@ -71,7 +73,7 @@ class ChunkHeatSourcesTests {
         chunk.place(inChunk, campfire)
         chunk.place(alsoInChunk, campfire)
         ChunkHeatSources.rebuild(chunk)
-        val index = ChunkHeatSources.of(chunk)
+        val index = indexOf(chunk)
         assertEquals(2, index.size)
         assertTrue(index.containsKey(inChunk.asLong()))
         assertTrue(index.containsKey(alsoInChunk.asLong()))
@@ -82,7 +84,7 @@ class ChunkHeatSourcesTests {
         val chunk = chunk()
         chunk.place(topSection, campfire)
         ChunkHeatSources.rebuild(chunk)
-        assertTrue(ChunkHeatSources.of(chunk).containsKey(topSection.asLong()))
+        assertTrue(indexOf(chunk).containsKey(topSection.asLong()))
     }
 
     @Test
@@ -90,7 +92,7 @@ class ChunkHeatSourcesTests {
         val chunk = chunk()
         chunk.place(belowZero, campfire)
         ChunkHeatSources.rebuild(chunk)
-        val key = ChunkHeatSources.of(chunk).keys.single()
+        val key = indexOf(chunk).keys.single()
         assertEquals(belowZero, BlockPos.of(key), "packed key round-trips through BlockPos.of")
     }
 
@@ -101,7 +103,7 @@ class ChunkHeatSourcesTests {
         ChunkHeatSources.rebuild(chunk)
         assertEquals(
             HEAT_SOURCE_BLOCKS[Blocks.FURNACE],
-            ChunkHeatSources.of(chunk)[inChunk.asLong()]
+            indexOf(chunk)[inChunk.asLong()]
         )
     }
 
@@ -112,30 +114,30 @@ class ChunkHeatSourcesTests {
         chunk.place(inChunk, campfire)
         chunk.place(inChunk, air)
         ChunkHeatSources.rebuild(chunk)
-        assertTrue(ChunkHeatSources.of(chunk).isEmpty())
+        assertTrue(indexOf(chunk).isEmpty())
     }
 
     @Test
     fun `putting then removing a single source clears it from the index`() {
         val chunk = chunk()
         ChunkHeatSources.onBlockChanged(chunk, inChunk, campfire)
-        assertTrue(ChunkHeatSources.of(chunk).containsKey(inChunk.asLong()))
+        assertTrue(indexOf(chunk).containsKey(inChunk.asLong()))
         ChunkHeatSources.removeHeatSource(chunk, inChunk)
-        assertFalse(ChunkHeatSources.of(chunk).containsKey(inChunk.asLong()))
+        assertFalse(indexOf(chunk).containsKey(inChunk.asLong()))
     }
 
     @Test
     fun `removing a non-existent source does not throw and leaves nothing behind`() {
         val chunk = chunk()
         ChunkHeatSources.removeHeatSource(chunk, inChunk)
-        assertTrue(ChunkHeatSources.of(chunk).isEmpty())
+        assertTrue(indexOf(chunk).isEmpty())
     }
 
     @Test
     fun `changing a block to a non-source no-ops the index`() {
         val chunk = chunk()
         ChunkHeatSources.onBlockChanged(chunk, inChunk, stone)
-        assertTrue(ChunkHeatSources.of(chunk).isEmpty())
+        assertTrue(indexOf(chunk).isEmpty())
     }
 
     @Test
@@ -143,7 +145,7 @@ class ChunkHeatSourcesTests {
         val chunk = chunk()
         ChunkHeatSources.onBlockChanged(chunk, inChunk, campfire)
         ChunkHeatSources.onBlockChanged(chunk, inChunk, furnace)
-        val index = ChunkHeatSources.of(chunk)
+        val index = indexOf(chunk)
         assertEquals(1, index.size)
         assertEquals(HEAT_SOURCE_BLOCKS[Blocks.FURNACE], index[inChunk.asLong()])
     }
@@ -153,7 +155,7 @@ class ChunkHeatSourcesTests {
         val chunk = chunk()
         ChunkHeatSources.onBlockChanged(chunk, inChunk, campfire)
         ChunkHeatSources.onBlockChanged(chunk, inChunk, air)
-        assertFalse(ChunkHeatSources.of(chunk).containsKey(inChunk.asLong()))
+        assertFalse(indexOf(chunk).containsKey(inChunk.asLong()))
     }
 
     companion object {

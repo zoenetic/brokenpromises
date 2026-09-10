@@ -2,7 +2,6 @@ package dev.zoenetic.brokenpromises.survival
 
 import dev.zoenetic.brokenpromises.survival.platform.ChunkView
 import dev.zoenetic.brokenpromises.survival.platform.Platform
-import dev.zoenetic.brokenpromises.survival.platform.PlatformName
 import dev.zoenetic.brokenpromises.survival.platform.PlayerStore
 import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
 import dev.zoenetic.brokenpromises.survival.probe.temperatureFromNoise
@@ -43,22 +42,20 @@ import org.mockito.Mockito.*
 import java.util.*
 
 object TestPlatform : Platform {
-    override val name: PlatformName = PlatformName.TEST
+    override val name: String = "test"
     override val isDevelopmentEnvironment: Boolean = false
     override fun isModLoaded(modId: String): Boolean = false
 
     override val heatSources: ChunkView<HeatSourceIndex> =
         object : ChunkView<HeatSourceIndex> {
             private val byChunk = IdentityHashMap<LevelChunk, HeatSourceIndex>()
-            override fun get(chunk: LevelChunk): HeatSourceIndex =
-                byChunk.getOrPut(chunk) { HeatSourceIndex() }
+            override fun get(chunk: LevelChunk): HeatSourceIndex? = byChunk[chunk]
         }
 
     override val playerConditions: PlayerStore<PlayerConditions> =
         object : PlayerStore<PlayerConditions> {
-            private val byPlayer = IdentityHashMap<Player, PlayerConditions>()
-            override fun get(player: ServerPlayer): PlayerConditions =
-                byPlayer.getOrPut(player) { PlayerConditions() }
+            private val byPlayer = IdentityHashMap<ServerPlayer, PlayerConditions>()
+            override fun get(player: ServerPlayer): PlayerConditions? = byPlayer[player]
 
             override fun set(player: ServerPlayer, value: PlayerConditions) {
                 byPlayer[player] = value
@@ -68,13 +65,13 @@ object TestPlatform : Platform {
     override val vitals: SyncedPlayerStore<Vitals> =
         object : SyncedPlayerStore<Vitals> {
             private val byPlayer = IdentityHashMap<Player, Vitals>()
-            override fun get(player: Player): Vitals =
-                byPlayer.getOrPut(player) { Vitals.DEFAULT }
+            override fun get(player: Player): Vitals? = byPlayer[player]
 
-            override fun set(player: ServerPlayer, value: Vitals) {
+            override fun set(player: Player, value: Vitals) {
                 byPlayer[player] = value
             }
         }
+
 }
 
 object CommonFixtures {
@@ -162,7 +159,7 @@ object CommonFixtures {
     const val SCAN_RADIUS_CHUNKS: Int = 512
     const val SCAN_STEP_CHUNKS: Int = 8
 
-    // this is deterministic for a given seed and Minecraft version, so tests can *find* an extreme
+    // this is deterministic for a given seed and Minecraft version, so tests can find extremes
     val climateScan: List<ClimateSite> by lazy {
         val sites = ArrayList<ClimateSite>()
         for (x in -SCAN_RADIUS_CHUNKS..SCAN_RADIUS_CHUNKS step SCAN_STEP_CHUNKS) {

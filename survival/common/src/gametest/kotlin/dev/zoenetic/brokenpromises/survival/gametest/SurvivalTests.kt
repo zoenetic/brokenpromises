@@ -1,7 +1,6 @@
 package dev.zoenetic.brokenpromises.survival.gametest
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.platform.PlatformName
 import dev.zoenetic.brokenpromises.survival.probe.getHumidity
 import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
@@ -32,7 +31,7 @@ object SurvivalTests {
 
     fun aRealServerLevelIsAvailable(helper: GameTestHelper) {
         check(!helper.level.isClientSide) { "expected a server level" }
-        check(Survival.platform.name in setOf(PlatformName.FABRIC, PlatformName.NEOFORGE)) {
+        check(Survival.platform.name in setOf("fabric", "neoforge")) {
             "expected a real loader platform, got ${Survival.platform.name}"
         }
         helper.succeed()

@@ -44,7 +44,7 @@ public fun LevelChunk.getTemperature(
     altitude: Altitude? = null,
     humidity: Humidity,
     sky: Sky,
-    time: Ticks,
+    time: Time,
 ): Celsius {
     return getBaseTemperature()
         .adjustForAltitude(altitude)
@@ -94,7 +94,7 @@ internal fun Celsius.adjustForAltitude(
 }
 
 internal fun Celsius.adjustForTimeOfDay(
-    time: Ticks,
+    time: Time,
     sky: Sky,
     humidity: Humidity
 ): Celsius {
