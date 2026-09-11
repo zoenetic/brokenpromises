@@ -17,6 +17,9 @@ public object Survival {
 
     public fun init(platform: Platform) {
         this.platform = platform
-        LOGGER.info("Broken Promises: Survival starting on {} (Minecraft 26.2)", platform.name)
+        LOGGER.info(
+            "Broken Promises: Survival (server) starting on {} (Minecraft 26.2)",
+            platform.name
+        )
     }
 }

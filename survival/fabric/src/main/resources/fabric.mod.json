@@ -15,6 +15,12 @@
                 "adapter": "kotlin",
                 "value": "dev.zoenetic.brokenpromises.survival.fabric.SurvivalFabric"
             }
+        ],
+        "client": [
+            {
+                "adapter": "kotlin",
+                "value": "dev.zoenetic.brokenpromises.survival.fabric.SurvivalClientFabric"
+            }
         ]
     },
     "mixins": [

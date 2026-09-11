@@ -1,0 +1,8 @@
+{
+  "heartbeat": {
+    "sounds": [
+      "brokenpromises:heartbeat"
+    ],
+    "subtitle": "subtitles.brokenpromises.heartbeat"
+  }
+}

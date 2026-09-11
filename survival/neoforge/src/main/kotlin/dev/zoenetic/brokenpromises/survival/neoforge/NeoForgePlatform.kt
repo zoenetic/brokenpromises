@@ -1,5 +1,6 @@
 package dev.zoenetic.brokenpromises.survival.neoforge
 
+import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.Survival.MOD_ID
 import dev.zoenetic.brokenpromises.survival.platform.ChunkView
 import dev.zoenetic.brokenpromises.survival.platform.Platform
@@ -8,6 +9,7 @@ import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
 import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
+import net.minecraft.core.registries.BuiltInRegistries
 import net.neoforged.fml.loading.FMLLoader
 import net.neoforged.neoforge.attachment.AttachmentType
 import net.neoforged.neoforge.registries.DeferredRegister
@@ -29,6 +31,10 @@ public object NeoForgePlatform : Platform {
             NeoForgeRegistries.ATTACHMENT_TYPES,
             MOD_ID
         )
+
+    internal val SOUND_EVENTS = DeferredRegister.create(
+        BuiltInRegistries.SOUND_EVENT, Survival.NAMESPACE
+    )
 
     override val heatSources: ChunkView<HeatSourceIndex> = NeoForgeChunkView(
         ATTACHMENTS.register("chunk_heat_sources", Supplier {

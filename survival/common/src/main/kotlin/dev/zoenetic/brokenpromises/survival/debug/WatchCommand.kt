@@ -11,13 +11,13 @@ public val watchCommand: LiteralArgumentBuilder<CommandSourceStack> =
         .executes { context ->
             val source = context.source
             val player = source.playerOrException
-            if (!watchers.registry.contains(player.uuid)) {
-                watchers.add(player.uuid)
+            if (!WatcherRegistry.registry.contains(player.uuid)) {
+                WatcherRegistry.add(player.uuid)
                 source.sendSuccess({
                     Component.literal("Added watcher")
                 }, false)
             } else {
-                watchers.remove(player.uuid)
+                WatcherRegistry.remove(player.uuid)
                 source.sendSuccess({
                     Component.literal("Removed watcher")
                 }, false)
