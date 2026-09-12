@@ -38,7 +38,7 @@ public object WatcherRegistry {
                 val time = Time(level.gameTime)
                 val conditions = Survival.platform.playerConditions.get(player) ?: continue
                 val vitals = Survival.platform.vitals.get(player) ?: continue
-                val exertion = Exertion.get(player.uuid)
+                val exertion = Exertion.average(player.uuid)
                 val speed = player.getAttributeValue(MOVEMENT_SPEED)
                 val elapsed: Duration = time - conditions.time
                 if (elapsed.value == 0L) {
@@ -50,7 +50,7 @@ public object WatcherRegistry {
                                 )
                             }°C, B: $${
                                 String.format(
-                                    "%.1f", vitals.bodyTemperature.value.toDouble()
+                                    "%.1f", vitals.bodyTemperature.celsius.value
                                 )
                             }°C, H: $${
                                 String.format(

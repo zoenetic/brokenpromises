@@ -26,8 +26,6 @@ import net.minecraft.world.level.Level
 import java.util.*
 import kotlin.math.abs
 
-public const val MET_MAX: Double = 16.0
-
 internal val SLEEPING: MET = MET(0.9)
 internal val DRINKING: MET = MET(1.3)
 internal val RIDING: MET = MET(1.3)
@@ -84,6 +82,12 @@ public class Exertion(
     public companion object {
 
         internal val cache: HashMap<UUID, Exertion> = hashMapOf()
+
+        internal fun average(uuid: UUID): MET? {
+            val accumulator = cache[uuid]?.accumulator ?: return null
+            return accumulator.average()
+
+        }
 
         // TODO: Rest of inventory?
         // TODO: Pull this out into its own system that body temp can pull from too
@@ -156,7 +160,7 @@ public class Exertion(
         internal val ServerPlayer.isShivering: Boolean
             get() {
                 val vitals = Survival.platform.vitals.get(this) ?: return false
-                return shiverIntensity(vitals.bodyTemperature.value) > 0.0
+                return shiverIntensity(vitals.bodyTemperature.celsius) > 0.0
             }
 
         internal val ServerPlayer.isWalking: Boolean
@@ -199,12 +203,6 @@ public class Exertion(
                 }
             }
             return activities
-        }
-
-        public fun get(uuid: UUID): MET? {
-            val exertion = cache[uuid] ?: return null
-            val average = exertion.accumulator.average()
-            return average
         }
 
         public fun calculateMET(player: ServerPlayer): MET {
@@ -253,5 +251,7 @@ public class Exertion(
             exertion.accumulator.add(met)
             exertion.trim()
         }
+
+        public val DEFAULT: MET = MET(1.0)
     }
 }

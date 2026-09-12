@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.units.Duration
+import dev.zoenetic.brokenpromises.survival.units.MET
 import dev.zoenetic.brokenpromises.survival.units.Time
 import io.netty.buffer.ByteBuf
 import net.minecraft.network.codec.StreamCodec
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 
 private val INTERVAL: Duration = Duration(20L)
+public val MET_MAX: MET = MET(16.0)
 
 public data class Vitals(
     val bodyTemperature: BodyTemperature,
@@ -37,12 +39,18 @@ public data class Vitals(
         ): Vitals {
             val conditions =
                 Survival.platform.playerConditions.get(player) ?: return previous
+            val exertion = Exertion.average(player.uuid) ?: Exertion.DEFAULT
             val bodyTemperature = previous.bodyTemperature.getNew(
                 player,
                 conditions,
+                exertion,
                 elapsed
             )
-            val heartRate = previous.heartRate.getNew(bodyTemperature.value)
+            val heartRate = previous.heartRate.getNew(
+                bodyTemperature,
+                exertion,
+                elapsed,
+            )
             val vitals = Vitals(
                 bodyTemperature,
                 heartRate,

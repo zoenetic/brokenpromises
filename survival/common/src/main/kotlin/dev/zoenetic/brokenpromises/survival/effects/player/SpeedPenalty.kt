@@ -31,7 +31,7 @@ public value class SpeedPenalty(public val value: Double) {
 
     public fun tick(player: ServerPlayer) {
         val vitals = Survival.platform.vitals.get(player) ?: return
-        val penalty = forTemperature(vitals.bodyTemperature.value)
+        val penalty = forTemperature(vitals.bodyTemperature.celsius)
         val attribute = player.getAttribute(MOVEMENT_SPEED) ?: return
         if (penalty.value == 0.0) {
             attribute.removeModifier(BODY_TEMPERATURE_SPEED_REDUCTION)

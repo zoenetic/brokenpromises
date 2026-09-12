@@ -7,13 +7,15 @@ import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Conductance
 import dev.zoenetic.brokenpromises.survival.units.Duration
+import dev.zoenetic.brokenpromises.survival.units.MET
 import io.netty.buffer.ByteBuf
 import net.minecraft.SharedConstants
 import net.minecraft.network.codec.StreamCodec
 import net.minecraft.world.entity.player.Player
 import kotlin.math.pow
 
-internal const val NORMAL_BODY_TEMPERATURE = 37.0
+internal const val NORMAL_BODY_TEMPERATURE: Double = 37.0
+internal const val BODY_TEMP_INCREASE_PER_CAPACITY: Double = 2.0
 
 public const val BODY_COOLS_AT: Double = 30.0 * 60.0
 public const val BODY_WARMS_AT: Double = 15.0 * 60.0
@@ -25,28 +27,30 @@ public const val HEAT_LEAKAGE: Double = 0.2
 
 
 public data class BodyTemperature(
-    val value: Celsius = Celsius(37.0)
+    val celsius: Celsius = Celsius(37.0)
 ) {
     public fun getNew(
         player: Player,
         conditions: PlayerConditions,
+        exertion: MET,
         elapsed: Duration
     ): BodyTemperature {
-        val target = target(conditions.temperature)
-        if (value == target) return this
-        val isWarming = value < target
+        val current = celsius.value
+        val fromExertion = BODY_TEMP_INCREASE_PER_CAPACITY * exertion.capacity(MET_MAX)
+        val target = target(conditions.temperature).value + fromExertion
+        if (current == target) return this
+        val isWarming = current < target
         val medium = player.getConductanceOfMediumIn()
         val surface = player.getConductanceOfSurfaceOn()
         val wind = conditions.wind.conductance
         val halfLifeSeconds = halfLife(isWarming, medium, surface, wind)
-        return BodyTemperature(
-            approach(
-                value,
-                target,
-                elapsed,
-                halfLifeSeconds,
-            )
+        val new = approach(
+            current,
+            target,
+            elapsed,
+            halfLifeSeconds,
         )
+        return BodyTemperature(Celsius(new))
     }
 
 
@@ -80,26 +84,26 @@ public data class BodyTemperature(
         }
 
         internal fun approach(
-            current: Celsius,
-            target: Celsius,
+            current: Double,
+            target: Double,
             elapsed: Duration,
             halfLife: Double,
-        ): Celsius {
+        ): Double {
             val elapsedSeconds = elapsed.value / SharedConstants.TICKS_PER_SECOND.toDouble()
             val remainingFraction = 0.5.pow(elapsedSeconds / halfLife)
-            return Celsius(target.value + (current.value - target.value) * remainingFraction)
+            return target + (current - target) * remainingFraction
         }
 
         public val CODEC: Codec<BodyTemperature> =
             Celsius.CODEC.xmap(
                 ::BodyTemperature,
-                BodyTemperature::value
+                BodyTemperature::celsius
             )
 
         public val STREAM_CODEC: StreamCodec<ByteBuf, BodyTemperature> =
             Celsius.STREAM_CODEC.map(
                 ::BodyTemperature,
-                BodyTemperature::value
+                BodyTemperature::celsius
             )
 
         public val DEFAULT: BodyTemperature = BodyTemperature(Celsius(NORMAL_BODY_TEMPERATURE))

@@ -2,27 +2,28 @@ package dev.zoenetic.brokenpromises.survival.vitals
 
 import com.mojang.serialization.Codec
 import dev.zoenetic.brokenpromises.survival.effects.player.SHIVER_CEASES
-import dev.zoenetic.brokenpromises.survival.effects.player.shiverIntensity
 import dev.zoenetic.brokenpromises.survival.units.BPM
-import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Duration
+import dev.zoenetic.brokenpromises.survival.units.MET
 import io.netty.buffer.ByteBuf
 import net.minecraft.SharedConstants
 import net.minecraft.network.codec.StreamCodec
 import kotlin.math.pow
 
-internal val RESTING_HEART_RATE = HeartRate(BPM(75.0))
+internal val RESTING_HEART_RATE = BPM(75.0)
+internal val MAX_HEART_RATE = BPM(200.0)
 
 internal const val ASYSTOLE_TEMPERATURE = 22.0
 internal const val ARRHYTHMIA_TEMPERATURE = 44.0
-internal const val PEAK_SHIVERING_AMPLITUDE = 35.0
-internal const val MAX_HEART_RATE = 200.0
 
 internal const val LOW_BPM_AUDIBLE_THRESHOLD = 60.0
 internal const val LOW_BPM_FULL_VOLUME_THRESHOLD = 40.0
 
 internal const val HIGH_BPM_AUDIBLE_THRESHOLD = 90.0
 internal const val HIGH_BPM_FULL_VOLUME_THRESHOLD = 160.0
+
+internal const val HEART_RATE_RISES_AT = 20.0
+internal const val HEART_RATE_FALLS_AT = 60.0
 
 public data class Heartbeat(
     val interval: Duration,
@@ -34,26 +35,36 @@ public data class HeartRate(
     val bpm: BPM = BPM(75.0)
 ) {
     public fun getNew(
-        bodyTemperature: Celsius
+        bodyTemperature: BodyTemperature,
+        exertion: MET,
+        elapsed: Duration
     ): HeartRate {
-        val core = bodyTemperature.value
+        val current = bpm.value
+        val coreTemp = bodyTemperature.celsius
         val chill =
-            ((core - ASYSTOLE_TEMPERATURE) / (SHIVER_CEASES - ASYSTOLE_TEMPERATURE)).coerceIn(
+            ((coreTemp.value - ASYSTOLE_TEMPERATURE) / (SHIVER_CEASES - ASYSTOLE_TEMPERATURE)).coerceIn(
                 0.0,
                 1.0
             )
-        val shiveringBump = shiverIntensity(bodyTemperature) * PEAK_SHIVERING_AMPLITUDE
         val heatDelta =
-            10 * (core - NORMAL_BODY_TEMPERATURE).coerceIn(
+            10 * (coreTemp.value - NORMAL_BODY_TEMPERATURE).coerceIn(
                 0.0,
                 ARRHYTHMIA_TEMPERATURE - NORMAL_BODY_TEMPERATURE
             ).pow(1.3)
+        val reserve = MAX_HEART_RATE - RESTING_HEART_RATE
+        val exerted = RESTING_HEART_RATE + reserve * exertion.capacity(MET_MAX)
+        val target =
+            ((exerted + heatDelta) * chill).value.coerceAtMost(MAX_HEART_RATE.value)
+        val isRising = target > current
+        val halfLife = halfLife(isRising)
+        val new = approach(
+            current,
+            target,
+            elapsed,
+            halfLife,
+        )
         return HeartRate(
-            BPM(
-                (chill * (RESTING_HEART_RATE.bpm.value + shiveringBump + heatDelta)).coerceAtMost(
-                    MAX_HEART_RATE
-                )
-            )
+            BPM(new)
         )
     }
 
@@ -84,6 +95,24 @@ public data class HeartRate(
     }
 
     public companion object {
+
+        internal fun halfLife(
+            isRising: Boolean
+        ): Double {
+            return if (isRising) HEART_RATE_RISES_AT else HEART_RATE_FALLS_AT
+        }
+
+        internal fun approach(
+            current: Double,
+            target: Double,
+            elapsed: Duration,
+            halfLife: Double,
+        ): Double {
+            val elapsedSeconds = elapsed.value / SharedConstants.TICKS_PER_SECOND.toDouble()
+            val remainingFraction = 0.5.pow(elapsedSeconds / halfLife)
+            return target + (current - target) * remainingFraction
+        }
+
         public val CODEC: Codec<HeartRate> =
             BPM.CODEC.xmap(
                 ::HeartRate,
@@ -96,6 +125,6 @@ public data class HeartRate(
                 HeartRate::bpm
             )
 
-        public val DEFAULT: HeartRate = RESTING_HEART_RATE
+        public val DEFAULT: HeartRate = HeartRate(RESTING_HEART_RATE)
     }
 }

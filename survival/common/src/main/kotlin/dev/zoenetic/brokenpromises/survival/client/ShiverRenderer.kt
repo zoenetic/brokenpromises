@@ -50,6 +50,6 @@ public object ShiverRenderer {
 
     private fun intensityOf(player: Player): Double {
         val vitals = Survival.platform.vitals.get(player) ?: return 0.0
-        return shiverIntensity(vitals.bodyTemperature.value)
+        return shiverIntensity(vitals.bodyTemperature.celsius)
     }
 }

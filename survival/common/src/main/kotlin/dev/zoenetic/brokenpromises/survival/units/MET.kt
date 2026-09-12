@@ -2,11 +2,9 @@ package dev.zoenetic.brokenpromises.survival.units
 
 import java.util.*
 
-
 @JvmInline
 public value class MET(public val value: Double) {
-    public fun toPower(): Power = Power(value * 100)
-    public fun toCapacity(max: MET): Double = (value - 1) / (max.value - 1)
+    public fun capacity(max: MET): Double = (value - 1) / (max.value - 1)
 }
 
 public fun ArrayDeque<MET>.average(): MET {

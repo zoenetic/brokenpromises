@@ -19,29 +19,29 @@ class BodyTemperatureTests {
 
     @Test
     fun `approach returns current exactly for 0 elapsed ticks`() {
-        val low = c(30.0)
-        assertEquals(low, approach(low, c(28.0), d(0), BODY_COOLS_AT))
-        val high = c(44.0)
-        assertEquals(high, approach(high, c(46.0), d(0), BODY_WARMS_AT))
+        val low = 30.0
+        assertEquals(low, approach(low, 28.0, d(0), BODY_COOLS_AT))
+        val high = 44.0
+        assertEquals(high, approach(high, 46.0, d(0), BODY_WARMS_AT))
     }
 
     @Test
     fun `one half-life closes exactly half the gap`() {
         val oneSecond = 1.0
-        assertEquals(28.5, approach(c(30.0), c(27.0), d(20), oneSecond).value, 1e-9)
-        assertEquals(45.5, approach(c(44.0), c(47.0), d(20), oneSecond).value, 1e-9)
+        assertEquals(28.5, approach(30.0, 27.0, d(20), oneSecond), 1e-9)
+        assertEquals(45.5, approach(44.0, 47.0, d(20), oneSecond), 1e-9)
     }
 
     @Test
     fun `approach never overshoots when warming`() {
-        val current = c(NORMAL_BODY_TEMPERATURE)
+        val current = NORMAL_BODY_TEMPERATURE
         for (gap in 1..10) {
-            val target = current + TemperatureDifference(gap.toDouble())
+            val target = current + gap.toDouble()
             for (elapsed in listOf(1L, 20L, 100_000L)) {
                 val new = approach(current, target, d(elapsed), BODY_WARMS_AT)
                 assertTrue(
-                    new >= current && new <= target,
-                    "gap $gap, elapsed $elapsed: got ${new.value}"
+                    new in current..target,
+                    "gap $gap, elapsed $elapsed: got $new"
                 )
             }
         }
@@ -49,14 +49,14 @@ class BodyTemperatureTests {
 
     @Test
     fun `approach never overshoots when cooling`() {
-        val current = c(NORMAL_BODY_TEMPERATURE)
+        val current = NORMAL_BODY_TEMPERATURE
         for (gap in 1..10) {
-            val target = current - TemperatureDifference(gap.toDouble())
+            val target = current - gap.toDouble()
             for (elapsed in listOf(1L, 20L, 100_000L)) {
                 val new = approach(current, target, d(elapsed), BODY_COOLS_AT)
                 assertTrue(
-                    new >= target && new <= current,
-                    "gap $gap, elapsed $elapsed: got ${new.value}"
+                    new in target..current,
+                    "gap $gap, elapsed $elapsed: got $new"
                 )
             }
         }
@@ -64,35 +64,35 @@ class BodyTemperatureTests {
 
     @Test
     fun `approach composes, 40 ticks equals 2 x 20 ticks`() {
-        val target = c(NORMAL_BODY_TEMPERATURE) + TemperatureDifference(3.0)
-        val afterForty = approach(c(NORMAL_BODY_TEMPERATURE), target, d(40), BODY_WARMS_AT)
-        val afterFirstTwenty = approach(c(NORMAL_BODY_TEMPERATURE), target, d(20), BODY_WARMS_AT)
+        val target = NORMAL_BODY_TEMPERATURE + 3.0
+        val afterForty = approach(NORMAL_BODY_TEMPERATURE, target, d(40), BODY_WARMS_AT)
+        val afterFirstTwenty = approach(NORMAL_BODY_TEMPERATURE, target, d(20), BODY_WARMS_AT)
         val afterSecondTwenty = approach(afterFirstTwenty, target, d(20), BODY_WARMS_AT)
-        assertEquals(afterForty.value, afterSecondTwenty.value, 1e-9)
+        assertEquals(afterForty, afterSecondTwenty, 1e-9)
     }
 
     @Test
     fun `one tick at a time equals one step of twenty ticks`() {
-        val target = c(NORMAL_BODY_TEMPERATURE) - TemperatureDifference(8.0)
-        var stepwise = c(NORMAL_BODY_TEMPERATURE)
+        val target = NORMAL_BODY_TEMPERATURE - 8.0
+        var stepwise = NORMAL_BODY_TEMPERATURE
         repeat(20) { stepwise = approach(stepwise, target, d(1), BODY_COOLS_AT) }
-        val oneGo = approach(c(NORMAL_BODY_TEMPERATURE), target, d(20), BODY_COOLS_AT)
-        assertEquals(oneGo.value, stepwise.value, 1e-9)
+        val oneGo = approach(NORMAL_BODY_TEMPERATURE, target, d(20), BODY_COOLS_AT)
+        assertEquals(oneGo, stepwise, 1e-9)
     }
 
     @Test
     fun `a single tick actually moves the body temperature`() {
-        val target = c(NORMAL_BODY_TEMPERATURE - 20.0)
-        val after = approach(c(NORMAL_BODY_TEMPERATURE), target, d(1), BODY_COOLS_AT)
+        val target = NORMAL_BODY_TEMPERATURE - 20.0
+        val after = approach(NORMAL_BODY_TEMPERATURE, target, d(1), BODY_COOLS_AT)
         assertTrue(
-            after.value < NORMAL_BODY_TEMPERATURE,
-            "one tick in the cold should cool the body, got ${after.value}"
+            after < NORMAL_BODY_TEMPERATURE,
+            "one tick in the cold should cool the body, got $after"
         )
     }
 
     @Test
     fun `if current == target, approach returns current`() {
-        val current = c(24.0)
+        val current = 24.0
         assertEquals(current, approach(current, current, d(1), BODY_WARMS_AT))
         assertEquals(current, approach(current, current, d(1), BODY_COOLS_AT))
     }
