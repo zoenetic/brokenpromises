@@ -49,6 +49,7 @@ public fun LevelChunk.getTemperature(
     return getBaseTemperature()
         .adjustForAltitude(altitude)
         .adjustForTimeOfDay(time, sky, humidity)
+
 }
 
 public fun LevelChunk.getWind(): Wind {
@@ -75,7 +76,6 @@ internal fun LevelChunk.getBaseTemperature(): Celsius {
     return temperatureFromNoise(compute(function))
 }
 
-/** Maps climate noise onto a latitude band running from [POLE_C] to [EQUATOR_C]. */
 internal fun temperatureFromNoise(noise: Double): Celsius {
     val latitude = (PI / 4.0) * (1.0 - noise.coerceIn(-1.0, 1.0))
     return Celsius(POLE_C + (EQUATOR_C - POLE_C) * cos(latitude).pow(LATITUDE_FALLOFF))

@@ -3,11 +3,9 @@ package dev.zoenetic.brokenpromises.survival.vitals
 import com.mojang.serialization.Codec
 import dev.zoenetic.brokenpromises.survival.probe.getConductanceOfMediumIn
 import dev.zoenetic.brokenpromises.survival.probe.getConductanceOfSurfaceOn
+import dev.zoenetic.brokenpromises.survival.probe.getInsulation
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
-import dev.zoenetic.brokenpromises.survival.units.Celsius
-import dev.zoenetic.brokenpromises.survival.units.Conductance
-import dev.zoenetic.brokenpromises.survival.units.Duration
-import dev.zoenetic.brokenpromises.survival.units.MET
+import dev.zoenetic.brokenpromises.survival.units.*
 import io.netty.buffer.ByteBuf
 import net.minecraft.SharedConstants
 import net.minecraft.network.codec.StreamCodec
@@ -36,14 +34,15 @@ public data class BodyTemperature(
         elapsed: Duration
     ): BodyTemperature {
         val current = celsius.value
+        val insulation = player.getInsulation()
         val fromExertion = BODY_TEMP_INCREASE_PER_CAPACITY * exertion.capacity(MET_MAX)
-        val target = target(conditions.temperature).value + fromExertion
+        val target = target(conditions.feelsLike(), insulation).value + fromExertion
         if (current == target) return this
         val isWarming = current < target
         val medium = player.getConductanceOfMediumIn()
         val surface = player.getConductanceOfSurfaceOn()
         val wind = conditions.wind.conductance
-        val halfLifeSeconds = halfLife(isWarming, medium, surface, wind)
+        val halfLifeSeconds = halfLife(isWarming, medium, surface, wind, insulation)
         val new = approach(
             current,
             target,
@@ -55,14 +54,18 @@ public data class BodyTemperature(
 
 
     public companion object {
-        internal fun target(ambient: Celsius): Celsius {
+
+        internal fun target(
+            ambient: Celsius,
+            insulation: Insulation = Insulation.NONE,
+        ): Celsius {
             val ambient = ambient.value
             val target = when {
                 ambient < COMFORT_LOW ->
-                    NORMAL_BODY_TEMPERATURE - COLD_LEAKAGE * (COMFORT_LOW - ambient)
+                    NORMAL_BODY_TEMPERATURE - (COLD_LEAKAGE / insulation.value) * (COMFORT_LOW - ambient)
 
                 ambient > COMFORT_HIGH ->
-                    NORMAL_BODY_TEMPERATURE + HEAT_LEAKAGE * (ambient - COMFORT_HIGH)
+                    NORMAL_BODY_TEMPERATURE + (HEAT_LEAKAGE * insulation.value) * (ambient - COMFORT_HIGH)
 
                 else -> NORMAL_BODY_TEMPERATURE
             }
@@ -74,12 +77,13 @@ public data class BodyTemperature(
             medium: Conductance? = null,
             surface: Conductance? = null,
             wind: Conductance? = null,
+            insulation: Insulation = Insulation.NONE,
         ): Double {
             val medium = medium?.value
             val surface = surface?.value
             val wind = wind?.value
             val conductance =
-                (medium ?: 1.0) * (surface ?: 1.0) * (wind ?: 1.0)
+                (medium ?: 1.0) * (surface ?: 1.0) * (wind ?: 1.0) / insulation.value
             return if (isWarming) BODY_WARMS_AT / conductance else BODY_COOLS_AT / conductance
         }
 

@@ -9,6 +9,7 @@ import io.netty.buffer.ByteBuf
 import net.minecraft.network.codec.ByteBufCodecs
 import net.minecraft.network.codec.StreamCodec
 import net.minecraft.resources.Identifier
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.ai.attributes.AttributeModifier
 import net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED
@@ -29,23 +30,6 @@ private val BODY_TEMPERATURE_SPEED_REDUCTION =
 @JvmInline
 public value class SpeedPenalty(public val value: Double) {
 
-    public fun tick(player: ServerPlayer) {
-        val vitals = Survival.platform.vitals.get(player) ?: return
-        val penalty = forTemperature(vitals.bodyTemperature.celsius)
-        val attribute = player.getAttribute(MOVEMENT_SPEED) ?: return
-        if (penalty.value == 0.0) {
-            attribute.removeModifier(BODY_TEMPERATURE_SPEED_REDUCTION)
-        } else {
-            attribute.addOrUpdateTransientModifier(
-                AttributeModifier(
-                    BODY_TEMPERATURE_SPEED_REDUCTION,
-                    -penalty.value,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-                )
-            )
-        }
-    }
-
     public companion object {
         public fun forTemperature(temperature: Celsius): SpeedPenalty {
             val deviation =
@@ -61,6 +45,28 @@ public value class SpeedPenalty(public val value: Double) {
                     1.0
                 )
             return SpeedPenalty(SPEED_PENALTY_MAX.value * progress)
+        }
+
+        public fun tick(level: ServerLevel) {
+            val players = level.players()
+            players.forEach(this::tick)
+        }
+
+        public fun tick(player: ServerPlayer) {
+            val vitals = Survival.platform.vitals.get(player) ?: return
+            val penalty = forTemperature(vitals.bodyTemperature.celsius)
+            val attribute = player.getAttribute(MOVEMENT_SPEED) ?: return
+            if (penalty.value == 0.0) {
+                attribute.removeModifier(BODY_TEMPERATURE_SPEED_REDUCTION)
+            } else {
+                attribute.addOrUpdateTransientModifier(
+                    AttributeModifier(
+                        BODY_TEMPERATURE_SPEED_REDUCTION,
+                        -penalty.value,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+                    )
+                )
+            }
         }
 
         public val CODEC: Codec<SpeedPenalty> =

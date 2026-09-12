@@ -1,4 +1,10 @@
 {
+  "breath": {
+    "sounds": [
+      "brokenpromises:breath"
+    ],
+    "subtitle": "subtitles.brokenpromises.breath"
+  },
   "heartbeat": {
     "sounds": [
       "brokenpromises:heartbeat"

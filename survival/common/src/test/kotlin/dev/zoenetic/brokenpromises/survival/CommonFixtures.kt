@@ -204,6 +204,7 @@ object CommonFixtures {
             val player = mock(ServerPlayer::class.java)
             doReturn(level).`when`(player).level()
             doReturn(pos).`when`(player).blockPosition()
+            doReturn(net.minecraft.world.phys.Vec3(pos.x + 0.5, pos.y + 1.62, pos.z + 0.5)).`when`(player).eyePosition
             doReturn(
                 AABB.ofSize(
                     net.minecraft.world.phys.Vec3(

@@ -3,6 +3,7 @@ package dev.zoenetic.brokenpromises.survival.vitals
 import com.mojang.serialization.Codec
 import dev.zoenetic.brokenpromises.survival.effects.player.SHIVER_CEASES
 import dev.zoenetic.brokenpromises.survival.units.BPM
+import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Duration
 import dev.zoenetic.brokenpromises.survival.units.MET
 import io.netty.buffer.ByteBuf
@@ -35,19 +36,19 @@ public data class HeartRate(
     val bpm: BPM = BPM(75.0)
 ) {
     public fun getNew(
-        bodyTemperature: BodyTemperature,
+        bodyTemperature: Celsius,
         exertion: MET,
         elapsed: Duration
     ): HeartRate {
         val current = bpm.value
-        val coreTemp = bodyTemperature.celsius
+        val core = bodyTemperature.value
         val chill =
-            ((coreTemp.value - ASYSTOLE_TEMPERATURE) / (SHIVER_CEASES - ASYSTOLE_TEMPERATURE)).coerceIn(
+            ((core - ASYSTOLE_TEMPERATURE) / (SHIVER_CEASES - ASYSTOLE_TEMPERATURE)).coerceIn(
                 0.0,
                 1.0
             )
         val heatDelta =
-            10 * (coreTemp.value - NORMAL_BODY_TEMPERATURE).coerceIn(
+            10 * (core - NORMAL_BODY_TEMPERATURE).coerceIn(
                 0.0,
                 ARRHYTHMIA_TEMPERATURE - NORMAL_BODY_TEMPERATURE
             ).pow(1.3)

@@ -5,9 +5,7 @@ import dev.zoenetic.brokenpromises.survival.debug.*
 import dev.zoenetic.brokenpromises.survival.registry.Sounds.HEARTBEAT_SOUND_EVENT
 import dev.zoenetic.brokenpromises.survival.registry.Sounds.HEARTBEAT_SOUND_ID
 import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
-import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
-import dev.zoenetic.brokenpromises.survival.vitals.Vitals
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents
@@ -51,9 +49,7 @@ public object SurvivalFabric : ModInitializer {
         }
 
         ServerTickEvents.END_LEVEL_TICK.register { level ->
-            PlayerConditions.tick(level)
-            Vitals.tick(level)
-            Exertion.tick(level)
+            Survival.tick(level)
         }
 
         ServerTickEvents.END_SERVER_TICK.register { server ->

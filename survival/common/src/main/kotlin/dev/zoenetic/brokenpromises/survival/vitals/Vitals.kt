@@ -18,6 +18,7 @@ public val MET_MAX: MET = MET(16.0)
 
 public data class Vitals(
     val bodyTemperature: BodyTemperature,
+    val breathingRate: BreathingRate,
     val heartRate: HeartRate,
     val time: Time
 ) {
@@ -46,13 +47,19 @@ public data class Vitals(
                 exertion,
                 elapsed
             )
+            val breathingRate = previous.breathingRate.getNew(
+                bodyTemperature.celsius,
+                exertion,
+                elapsed
+            )
             val heartRate = previous.heartRate.getNew(
-                bodyTemperature,
+                bodyTemperature.celsius,
                 exertion,
                 elapsed,
             )
             val vitals = Vitals(
                 bodyTemperature,
+                breathingRate,
                 heartRate,
                 time
             )
@@ -86,6 +93,8 @@ public data class Vitals(
                 instance.group(
                     BodyTemperature.CODEC.fieldOf("body_temperature")
                         .forGetter(Vitals::bodyTemperature),
+                    BreathingRate.CODEC.fieldOf("breathing_rate")
+                        .forGetter(Vitals::breathingRate),
                     HeartRate.CODEC.fieldOf("heart_rate")
                         .forGetter(Vitals::heartRate),
                     Time.CODEC.fieldOf("time")
@@ -97,6 +106,8 @@ public data class Vitals(
             StreamCodec.composite(
                 BodyTemperature.STREAM_CODEC,
                 Vitals::bodyTemperature,
+                BreathingRate.STREAM_CODEC,
+                Vitals::breathingRate,
                 HeartRate.STREAM_CODEC,
                 Vitals::heartRate,
                 Time.STREAM_CODEC,
@@ -106,6 +117,7 @@ public data class Vitals(
 
         public val DEFAULT: Vitals = Vitals(
             bodyTemperature = BodyTemperature.DEFAULT,
+            breathingRate = BreathingRate.DEFAULT,
             heartRate = HeartRate.DEFAULT,
             time = Time(0L)
         )

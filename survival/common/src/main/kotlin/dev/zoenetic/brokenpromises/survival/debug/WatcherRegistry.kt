@@ -1,6 +1,9 @@
 package dev.zoenetic.brokenpromises.survival.debug
 
 import dev.zoenetic.brokenpromises.survival.Survival
+import dev.zoenetic.brokenpromises.survival.probe.getWind
+import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
+import dev.zoenetic.brokenpromises.survival.state.sumHeatSources
 import dev.zoenetic.brokenpromises.survival.units.Duration
 import dev.zoenetic.brokenpromises.survival.units.Time
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
@@ -42,37 +45,23 @@ public object WatcherRegistry {
                 val speed = player.getAttributeValue(MOVEMENT_SPEED)
                 val elapsed: Duration = time - conditions.time
                 if (elapsed.value == 0L) {
+                    // Recomputed here rather than stored: debug only, once a second.
+                    val radiant = sumHeatSources(player.boundingBox.center, ChunkHeatSources.around(player))
+                    val chunkWind = level.getChunkAt(player.blockPosition()).getWind()
                     player.sendSystemMessage(
                         Component.literal(
-                            $$"A: $${
-                                String.format(
-                                    "%.1f", conditions.temperature.value
-                                )
-                            }°C, B: $${
-                                String.format(
-                                    "%.1f", vitals.bodyTemperature.celsius.value
-                                )
-                            }°C, H: $${
-                                String.format(
-                                    "%.1f", vitals.heartRate.bpm.value
-                                )
-                            }BPM, S: $${
-                                String.format(
-                                    "%.1f", speed * 1000
-                                )
-                            }%, Ex: $${
-                                String.format(
-                                    "%.1f", exertion?.value ?: 1.0
-                                )
-                            }MET, Sh: $${
-                                String.format(
-                                    "%.1f", 100 - (conditions.sky.value * 100)
-                                )
-                            }% $${if (conditions.isUnderOpenSky) "open sky" else ""}, W: $${
-                                String.format(
-                                    "%.1f", (conditions.wind.speed)
-                                )
-                            }"
+                            "FL${"%.1f".format(conditions.feelsLike().value)}" +
+                                    " A${"%.1f".format(conditions.temperature.value)}" +
+                                    " H${"%.1f".format(conditions.heat.value)}/${"%.1f".format(radiant.value)}" +
+                                    " W${"%.1f".format(conditions.wind.speed)}/${"%.1f".format(chunkWind.speed)}" +
+                                    " X${"%.2f".format(conditions.windExposure)}" +
+                                    " RH${"%.2f".format(conditions.humidity.value)}" +
+                                    " S${"%.1f".format(conditions.sky.value)}${if (conditions.isUnderOpenSky) "o" else "c"}" +
+                                    " | B${"%.1f".format(vitals.bodyTemperature.celsius.value)}" +
+                                    " R${"%.0f".format(vitals.breathingRate.value)}" +
+                                    " P${"%.0f".format(vitals.heartRate.bpm.value)}" +
+                                    " V${"%.0f".format(speed * 100)}" +
+                                    " E${"%.1f".format(exertion?.value)}"
                         ), true
                     )
                 }

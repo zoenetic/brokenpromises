@@ -5,9 +5,8 @@ import dev.zoenetic.brokenpromises.survival.debug.*
 import dev.zoenetic.brokenpromises.survival.registry.Sounds.HEARTBEAT_SOUND_EVENT
 import dev.zoenetic.brokenpromises.survival.registry.Sounds.HEARTBEAT_SOUND_ID
 import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
-import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
-import dev.zoenetic.brokenpromises.survival.vitals.Vitals
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.common.Mod
@@ -56,9 +55,8 @@ public class SurvivalNeoForge(modBus: IEventBus) {
         }
         bus.addListener(LevelTickEvent.Post::class.java) { event ->
             val level = event.level
-            PlayerConditions.tick(level)
-            Vitals.tick(level)
-            Exertion.tick(level)
+            if (level !is ServerLevel) return@addListener
+            Survival.tick(level)
         }
         bus.addListener(ServerTickEvent.Post::class.java) { event ->
             WatcherRegistry.tick(event.server)

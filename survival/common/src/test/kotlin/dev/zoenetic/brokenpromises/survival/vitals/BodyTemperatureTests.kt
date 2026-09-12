@@ -7,6 +7,7 @@ import dev.zoenetic.brokenpromises.survival.vitals.BodyTemperature.Companion.app
 import dev.zoenetic.brokenpromises.survival.vitals.BodyTemperature.Companion.halfLife
 import dev.zoenetic.brokenpromises.survival.vitals.BodyTemperature.Companion.target
 import net.minecraft.world.phys.Vec3
+import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -200,7 +201,7 @@ class BodyTemperatureTests {
     fun `wind conductance depends on speed, not direction`() {
         val east = Wind(Vec3(3.0, 0.0, 0.0))
         val north = Wind(Vec3(0.0, 0.0, -3.0))
-        val diagonal = Wind(Vec3(3.0 / Math.sqrt(2.0), 0.0, 3.0 / Math.sqrt(2.0)))
+        val diagonal = Wind(Vec3(3.0 / sqrt(2.0), 0.0, 3.0 / sqrt(2.0)))
         assertEquals(east.conductance.value, north.conductance.value, 1e-9)
         assertEquals(east.conductance.value, diagonal.conductance.value, 1e-9)
     }
@@ -218,6 +219,47 @@ class BodyTemperatureTests {
                 surface = metal,
                 wind = wind
             ),
+            1e-9,
+        )
+    }
+
+    @Test
+    fun `no insulation leaves target and half life unchanged`() {
+        assertEquals(target(c(0.0)), target(c(0.0), Insulation.NONE))
+        assertEquals(halfLife(isWarming = false), halfLife(isWarming = false, insulation = Insulation.NONE))
+    }
+
+    @Test
+    fun `insulation divides the cold drop of the target`() {
+        val naked = NORMAL_BODY_TEMPERATURE - target(c(0.0)).value
+        val wrapped = NORMAL_BODY_TEMPERATURE - target(c(0.0), Insulation(2.0)).value
+        assertEquals(naked / 2.0, wrapped, 1e-9)
+    }
+
+    @Test
+    fun `insulation multiplies the heat rise of the target`() {
+        val naked = target(c(45.0)).value - NORMAL_BODY_TEMPERATURE
+        val wrapped = target(c(45.0), Insulation(2.0)).value - NORMAL_BODY_TEMPERATURE
+        assertEquals(naked * 2.0, wrapped, 1e-9)
+    }
+
+    @Test
+    fun `insulation does nothing inside the comfort band`() {
+        assertEquals(c(NORMAL_BODY_TEMPERATURE), target(c(25.0), Insulation(3.0)))
+    }
+
+    @Test
+    fun `insulation lengthens the half life in both directions`() {
+        assertEquals(BODY_COOLS_AT * 2.0, halfLife(isWarming = false, insulation = Insulation(2.0)), 1e-9)
+        assertEquals(BODY_WARMS_AT * 2.0, halfLife(isWarming = true, insulation = Insulation(2.0)), 1e-9)
+    }
+
+    @Test
+    fun `insulation and wind pull the half life in opposite directions`() {
+        val wind = Wind(Vec3(5.0, 0.0, 0.0)).conductance
+        assertEquals(
+            BODY_COOLS_AT * 2.0 / wind.value,
+            halfLife(isWarming = false, wind = wind, insulation = Insulation(2.0)),
             1e-9,
         )
     }
