@@ -9,7 +9,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent
 import net.neoforged.neoforge.common.NeoForge
 
 @Mod(value = Survival.MOD_ID, dist = [Dist.CLIENT])
-public class SurvivalClientNeoForge(modBus: IEventBus) {
+public class NeoForgeSurvivalClient(modBus: IEventBus) {
 
     init {
         Survival.LOGGER.info("Broken Promises: Survival client starting on NeoForge")

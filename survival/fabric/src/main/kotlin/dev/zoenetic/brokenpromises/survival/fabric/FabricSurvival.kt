@@ -2,8 +2,6 @@ package dev.zoenetic.brokenpromises.survival.fabric
 
 import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.debug.*
-import dev.zoenetic.brokenpromises.survival.registry.Sounds.HEARTBEAT_SOUND_EVENT
-import dev.zoenetic.brokenpromises.survival.registry.Sounds.HEARTBEAT_SOUND_ID
 import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
 import net.fabricmc.api.ModInitializer
@@ -11,19 +9,11 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
-import net.minecraft.core.Registry
-import net.minecraft.core.registries.BuiltInRegistries
 
-public object SurvivalFabric : ModInitializer {
+public object FabricSurvival : ModInitializer {
 
     override fun onInitialize() {
         Survival.init(FabricPlatform)
-
-        Registry.register(
-            BuiltInRegistries.SOUND_EVENT,
-            HEARTBEAT_SOUND_ID,
-            HEARTBEAT_SOUND_EVENT
-        )
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(

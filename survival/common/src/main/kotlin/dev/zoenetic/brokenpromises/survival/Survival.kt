@@ -3,6 +3,9 @@ package dev.zoenetic.brokenpromises.survival
 import dev.zoenetic.brokenpromises.survival.effects.player.BreathParticles
 import dev.zoenetic.brokenpromises.survival.effects.player.SpeedPenalty
 import dev.zoenetic.brokenpromises.survival.platform.Platform
+import dev.zoenetic.brokenpromises.survival.registry.Blocks
+import dev.zoenetic.brokenpromises.survival.registry.Items
+import dev.zoenetic.brokenpromises.survival.registry.Sounds
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
@@ -31,6 +34,9 @@ public object Survival {
 
     public fun init(platform: Platform) {
         this.platform = platform
+        Blocks.init()
+        Items.init()
+        Sounds.init()
         LOGGER.info(
             "Broken Promises: Survival (server) starting on {} (Minecraft 26.2)",
             platform.name

@@ -9,6 +9,8 @@ public interface Platform {
     public val isDevelopmentEnvironment: Boolean
     public fun isModLoaded(modId: String): Boolean
 
+    public val registrar: Registrar
+
     public val heatSources: ChunkView<HeatSourceIndex>
     public val playerConditions: PlayerStore<PlayerConditions>
     public val vitals: SyncedPlayerStore<Vitals>

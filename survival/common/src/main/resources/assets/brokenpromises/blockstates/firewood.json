@@ -1,0 +1,88 @@
+{
+  "variants": {
+    "axis=x,billets=1": {
+      "model": "brokenpromises:block/firewood_1",
+      "y": 90
+    },
+    "axis=z,billets=1": {
+      "model": "brokenpromises:block/firewood_1"
+    },
+    "axis=x,billets=2": {
+      "model": "brokenpromises:block/firewood_2",
+      "y": 90
+    },
+    "axis=z,billets=2": {
+      "model": "brokenpromises:block/firewood_2"
+    },
+    "axis=x,billets=3": {
+      "model": "brokenpromises:block/firewood_3",
+      "y": 90
+    },
+    "axis=z,billets=3": {
+      "model": "brokenpromises:block/firewood_3"
+    },
+    "axis=x,billets=4": {
+      "model": "brokenpromises:block/firewood_4",
+      "y": 90
+    },
+    "axis=z,billets=4": {
+      "model": "brokenpromises:block/firewood_4"
+    },
+    "axis=x,billets=5": {
+      "model": "brokenpromises:block/firewood_5",
+      "y": 90
+    },
+    "axis=z,billets=5": {
+      "model": "brokenpromises:block/firewood_5"
+    },
+    "axis=x,billets=6": {
+      "model": "brokenpromises:block/firewood_6",
+      "y": 90
+    },
+    "axis=z,billets=6": {
+      "model": "brokenpromises:block/firewood_6"
+    },
+    "axis=x,billets=7": {
+      "model": "brokenpromises:block/firewood_7",
+      "y": 90
+    },
+    "axis=z,billets=7": {
+      "model": "brokenpromises:block/firewood_7"
+    },
+    "axis=x,billets=8": {
+      "model": "brokenpromises:block/firewood_8",
+      "y": 90
+    },
+    "axis=z,billets=8": {
+      "model": "brokenpromises:block/firewood_8"
+    },
+    "axis=x,billets=9": {
+      "model": "brokenpromises:block/firewood_9",
+      "y": 90
+    },
+    "axis=z,billets=9": {
+      "model": "brokenpromises:block/firewood_9"
+    },
+    "axis=x,billets=10": {
+      "model": "brokenpromises:block/firewood_10",
+      "y": 90
+    },
+    "axis=z,billets=10": {
+      "model": "brokenpromises:block/firewood_10"
+    },
+    "axis=x,billets=11": {
+      "model": "brokenpromises:block/firewood_11",
+      "y": 90
+    },
+    "axis=z,billets=11": {
+      "model": "brokenpromises:block/firewood_11"
+    },
+    "axis=x,billets=12": {
+      "model": "brokenpromises:block/firewood_12",
+      "y": 90
+    },
+    "axis=z,billets=12": {
+      "model": "brokenpromises:block/firewood_12"
+    }
+  }
+}

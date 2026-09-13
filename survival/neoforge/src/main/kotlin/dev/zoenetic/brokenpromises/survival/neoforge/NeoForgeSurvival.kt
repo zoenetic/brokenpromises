@@ -2,8 +2,6 @@ package dev.zoenetic.brokenpromises.survival.neoforge
 
 import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.debug.*
-import dev.zoenetic.brokenpromises.survival.registry.Sounds.HEARTBEAT_SOUND_EVENT
-import dev.zoenetic.brokenpromises.survival.registry.Sounds.HEARTBEAT_SOUND_ID
 import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
 import net.minecraft.server.level.ServerLevel
@@ -16,19 +14,13 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent
 import net.neoforged.neoforge.event.level.ChunkEvent
 import net.neoforged.neoforge.event.tick.LevelTickEvent
 import net.neoforged.neoforge.event.tick.ServerTickEvent
-import java.util.function.Supplier
 
 @Mod(Survival.MOD_ID)
-public class SurvivalNeoForge(modBus: IEventBus) {
+public class NeoForgeSurvival(modBus: IEventBus) {
     init {
         Survival.init(NeoForgePlatform)
-        NeoForgePlatform.ATTACHMENTS.register(modBus)
 
-        NeoForgePlatform.SOUND_EVENTS.register(
-            HEARTBEAT_SOUND_ID.path,
-            Supplier { HEARTBEAT_SOUND_EVENT },
-        )
-        NeoForgePlatform.SOUND_EVENTS.register(modBus)
+        NeoForgePlatform.init(modBus)
 
         val bus = NeoForge.EVENT_BUS
         bus.addListener(RegisterCommandsEvent::class.java) { event ->

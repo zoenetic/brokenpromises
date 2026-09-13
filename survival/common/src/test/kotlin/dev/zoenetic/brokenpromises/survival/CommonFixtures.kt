@@ -1,9 +1,6 @@
 package dev.zoenetic.brokenpromises.survival
 
-import dev.zoenetic.brokenpromises.survival.platform.ChunkView
-import dev.zoenetic.brokenpromises.survival.platform.Platform
-import dev.zoenetic.brokenpromises.survival.platform.PlayerStore
-import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
+import dev.zoenetic.brokenpromises.survival.platform.*
 import dev.zoenetic.brokenpromises.survival.probe.temperatureFromNoise
 import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
@@ -11,15 +8,19 @@ import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
 import net.minecraft.SharedConstants
 import net.minecraft.core.*
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.data.registries.VanillaRegistries
+import net.minecraft.resources.Identifier
 import net.minecraft.resources.RegistryFixedCodec
 import net.minecraft.resources.ResourceKey
 import net.minecraft.server.Bootstrap
 import net.minecraft.server.level.ServerChunkCache
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.Item
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LightLayer
@@ -29,6 +30,7 @@ import net.minecraft.world.level.biome.MultiNoiseBiomeSource
 import net.minecraft.world.level.biome.MultiNoiseBiomeSourceParameterLists
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.level.chunk.PalettedContainer
@@ -41,15 +43,55 @@ import net.minecraft.world.phys.AABB
 import org.mockito.Mockito.*
 import java.util.*
 
+/**
+ * A unit test cannot construct a mod block: before [Bootstrap.bootStrap] the vanilla
+ * registries do not exist, and afterwards they are frozen, and the Block and Item
+ * constructors need an unfrozen registry for their holders. So block and item entries
+ * are handed back as unbound references, which throw only if something reads them.
+ * Real registration is exercised by the loader gametests. Sounds have no such
+ * constraint and are built directly so client code under test can use them.
+ */
+object TestRegistrar : Registrar {
+    private fun id(name: String) = Identifier.fromNamespaceAndPath(Survival.NAMESPACE, name)
+
+    override fun block(
+        name: String,
+        properties: BlockBehaviour.Properties,
+        factory: (BlockBehaviour.Properties) -> Block
+    ): Holder<Block> =
+        Holder.Reference.createStandAlone(
+            BuiltInRegistries.BLOCK,
+            ResourceKey.create(Registries.BLOCK, id(name))
+        )
+
+    override fun blockItem(
+        name: String,
+        block: Holder<Block>,
+        properties: Item.Properties
+    ): Holder<Item> =
+        Holder.Reference.createStandAlone(
+            BuiltInRegistries.ITEM,
+            ResourceKey.create(Registries.ITEM, id(name))
+        )
+
+    override fun sound(
+        name: String,
+        factory: (Identifier) -> SoundEvent
+    ): Holder<SoundEvent> =
+        Holder.direct(factory(id(name)))
+}
+
 object TestPlatform : Platform {
     override val name: String = "test"
     override val isDevelopmentEnvironment: Boolean = false
     override fun isModLoaded(modId: String): Boolean = false
 
+    override val registrar: Registrar = TestRegistrar
+
     override val heatSources: ChunkView<HeatSourceIndex> =
         object : ChunkView<HeatSourceIndex> {
             private val byChunk = IdentityHashMap<LevelChunk, HeatSourceIndex>()
-            
+
             override fun get(chunk: LevelChunk): HeatSourceIndex =
                 byChunk.getOrPut(chunk) { HeatSourceIndex() }
         }
@@ -204,7 +246,9 @@ object CommonFixtures {
             val player = mock(ServerPlayer::class.java)
             doReturn(level).`when`(player).level()
             doReturn(pos).`when`(player).blockPosition()
-            doReturn(net.minecraft.world.phys.Vec3(pos.x + 0.5, pos.y + 1.62, pos.z + 0.5)).`when`(player).eyePosition
+            doReturn(net.minecraft.world.phys.Vec3(pos.x + 0.5, pos.y + 1.62, pos.z + 0.5)).`when`(
+                player
+            ).eyePosition
             doReturn(
                 AABB.ofSize(
                     net.minecraft.world.phys.Vec3(
