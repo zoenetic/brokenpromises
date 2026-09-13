@@ -5,6 +5,24 @@
     ],
     "subtitle": "subtitles.brokenpromises.breath"
   },
+  "fire_failure": {
+    "sounds": [
+      {
+        "name": "minecraft:item.brush.brushing.generic",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.brokenpromises.fire_failure"
+  },
+  "fire_success": {
+    "sounds": [
+      {
+        "name": "minecraft:item.flintandsteel.use",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.brokenpromises.fire_success"
+  },
   "heartbeat": {
     "sounds": [
       "brokenpromises:heartbeat"

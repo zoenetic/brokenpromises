@@ -6,11 +6,21 @@ import net.minecraft.sounds.SoundEvent
 
 public object Sounds {
 
-    public val HEARTBEAT: Holder<SoundEvent> = Survival.platform.registrar.sound("heartbeat") {
+    public val BREATH: Holder<SoundEvent> = Survival.platform.registrar.sound("breath") {
         SoundEvent.createFixedRangeEvent(it, 0F)
     }
 
-    public val BREATH: Holder<SoundEvent> = Survival.platform.registrar.sound("breath") {
+    public val FIRE_FAILURE: Holder<SoundEvent> =
+        Survival.platform.registrar.sound("fire_failure") {
+            SoundEvent.createVariableRangeEvent(it)
+        }
+
+    public val FIRE_SUCCESS: Holder<SoundEvent> =
+        Survival.platform.registrar.sound("fire_success") {
+            SoundEvent.createVariableRangeEvent(it)
+        }
+
+    public val HEARTBEAT: Holder<SoundEvent> = Survival.platform.registrar.sound("heartbeat") {
         SoundEvent.createFixedRangeEvent(it, 0F)
     }
 

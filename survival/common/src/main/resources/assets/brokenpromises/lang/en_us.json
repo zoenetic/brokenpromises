@@ -1,4 +1,6 @@
 {
   "subtitles.brokenpromises.breath": "Player breathes",
-  "subtitles.brokenpromises.heartbeat": "Heart pounds"
+  "subtitles.brokenpromises.heartbeat": "Heart pounds",
+  "subtitles.brokenpromises.fire_failure": "Striking a fire",
+  "subtitles.brokenpromises.fire_success": "Fire catches"
 }

@@ -5,6 +5,8 @@ import dev.zoenetic.brokenpromises.survival.registry.Items
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.sounds.SoundSource
 import net.minecraft.tags.BlockTags
 import net.minecraft.tags.FluidTags.WATER
 import net.minecraft.util.RandomSource
@@ -71,7 +73,8 @@ public class FirewoodBlock(properties: Properties) : Block(properties), SimpleWa
             level.gameEvent(player, GameEvent.BLOCK_DESTROY, pos)
         }
         val taken = ItemStack(Items.FIREWOOD_ITEM, 1)
-        if (!player.inventory.add(taken)) player.drop(taken, false);
+        level.playSound(player, pos, SoundEvents.WOOD_HIT, SoundSource.BLOCKS, 1F, 1F)
+        if (!player.inventory.add(taken)) player.drop(taken, false)
         return InteractionResult.SUCCESS
     }
 
@@ -155,9 +158,9 @@ public class FirewoodBlock(properties: Properties) : Block(properties), SimpleWa
         public val CODEC: MapCodec<FirewoodBlock> = simpleCodec(::FirewoodBlock)
         public val BILLETS: IntegerProperty =
             IntegerProperty.create("billets", MIN_BILLETS, MAX_BILLETS)
-        public const val MIN_BILLETS: Int = 1;
-        public const val MAX_BILLETS: Int = 12;
-        public val AXIS: EnumProperty<Direction.Axis> = BlockStateProperties.HORIZONTAL_AXIS
+        public const val MIN_BILLETS: Int = 1
+        public const val MAX_BILLETS: Int = 12
+        public val AXIS: EnumProperty<Axis> = BlockStateProperties.HORIZONTAL_AXIS
         public val WATERLOGGED: BooleanProperty = BlockStateProperties.WATERLOGGED
 
         private val SHAPES_Z: Array<VoxelShape> = arrayOf(
@@ -263,10 +266,10 @@ public class FirewoodBlock(properties: Properties) : Block(properties), SimpleWa
             )
         )
 
-        private val SHAPES: List<Map<Direction.Axis, VoxelShape>> =
+        private val SHAPES: List<Map<Axis, VoxelShape>> =
             SHAPES_Z.map { Shapes.rotateHorizontalAxis(it) }
 
-        public fun shapeFor(billets: Int, axis: Direction.Axis): VoxelShape =
+        public fun shapeFor(billets: Int, axis: Axis): VoxelShape =
             SHAPES[billets - MIN_BILLETS].getValue(axis)
 
         @JvmStatic

@@ -10,6 +10,8 @@
     "LivingEntityMixin"
   ],
   "client": [
+    "HumanoidModelMixin",
+    "ItemInHandRendererInvoker",
     "ItemInHandRendererMixin",
     "LivingEntityRendererMixin",
     "LivingEntityRenderStateMixin"

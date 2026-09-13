@@ -1,6 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.zoenetic.brokenpromises.survival.client.LightingCampfireRenderer;
 import dev.zoenetic.brokenpromises.survival.client.ShiverRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -19,11 +20,12 @@ public class LivingEntityRendererMixin {
     private void brokenpromises$captureShiver(LivingEntity entity, LivingEntityRenderState state,
                                               float partialTicks, CallbackInfo ci) {
         ShiverRenderer.INSTANCE.capture(entity, state);
+        LightingCampfireRenderer.INSTANCE.capture(entity, state);
     }
 
     @ModifyVariable(method = "setupRotations", at = @At("HEAD"), argsOnly = true, name = "bodyRot")
     private float brokenpromises$shiverBodyRotation(float bodyRot,
-                                                    @Local(argsOnly = true) LivingEntityRenderState state) {
+                                                    @Local(argsOnly = true, name = "state") LivingEntityRenderState state) {
         return ShiverRenderer.INSTANCE.applyToBodyRotation(bodyRot, state);
     }
 }
