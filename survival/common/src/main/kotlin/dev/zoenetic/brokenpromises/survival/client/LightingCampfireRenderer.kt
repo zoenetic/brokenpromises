@@ -2,8 +2,7 @@ package dev.zoenetic.brokenpromises.survival.client
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
-import dev.zoenetic.brokenpromises.survival.block.LIGHTING_CAMPFIRE_SLACK
-import dev.zoenetic.brokenpromises.survival.block.playerAttemptingAt
+import dev.zoenetic.brokenpromises.survival.fire.ClientFireAttempt
 import net.minecraft.client.model.geom.ModelPart
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState
@@ -32,10 +31,8 @@ public object LightingCampfireRenderer {
         this.frameInterp = frameInterp
     }
 
-    public fun isLighting(player: LocalPlayer): Boolean {
-        val at = playerAttemptingAt ?: return false
-        return player.level().gameTime - at in 0..LIGHTING_CAMPFIRE_SLACK
-    }
+    public fun isLighting(player: LocalPlayer): Boolean =
+        with(ClientFireAttempt) { player.isAttemptingToLightAFire() }
 
     private fun phaseAt(ticks: Float): Float =
         ticks * (2.0 * PI * LIGHTING_STROKES_PER_SECOND / 20.0).toFloat()

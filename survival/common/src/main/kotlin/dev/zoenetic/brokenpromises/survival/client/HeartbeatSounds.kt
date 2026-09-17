@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.client
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.registry.Sounds
+import dev.zoenetic.brokenpromises.survival.registry.BrokenPromisesSounds
 import dev.zoenetic.brokenpromises.survival.units.Time
 import dev.zoenetic.brokenpromises.survival.vitals.Heartbeat
 import net.minecraft.client.Minecraft
@@ -19,7 +19,8 @@ public data class HeartbeatSounds(
     public fun beat(heartbeat: Heartbeat, gameTime: Time) {
         val pitch = heartbeat.pitch
         val volume = heartbeat.volume
-        val instance = SimpleSoundInstance.forUI(Sounds.HEARTBEAT.value(), pitch, volume)
+        val instance =
+            SimpleSoundInstance.forUI(BrokenPromisesSounds.HEARTBEAT, pitch, volume)
         val result = Minecraft.getInstance().soundManager.play(instance)
         if (result == PlayResult.NOT_STARTED) {
             Survival.LOGGER.debug("heart beat sound not started")

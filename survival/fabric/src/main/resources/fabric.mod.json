@@ -21,6 +21,12 @@
         "adapter": "kotlin",
         "value": "dev.zoenetic.brokenpromises.survival.fabric.FabricClient"
       }
+    ],
+    "fabric-datagen": [
+      {
+        "adapter": "kotlin",
+        "value": "dev.zoenetic.brokenpromises.survival.fabric.datagen.FabricDataGenerators"
+      }
     ]
   },
   "mixins": [

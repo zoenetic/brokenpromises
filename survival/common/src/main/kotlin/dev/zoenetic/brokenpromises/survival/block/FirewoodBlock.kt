@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.block
 
 import com.mojang.serialization.MapCodec
-import dev.zoenetic.brokenpromises.survival.registry.Items
+import dev.zoenetic.brokenpromises.survival.registry.BrokenPromisesItems
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
@@ -50,32 +50,23 @@ public class FirewoodBlock(properties: Properties) : Block(properties), SimpleWa
         player: Player, hit: BlockHitResult
     ): InteractionResult {
         if (player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty) {
-            return takeOne(level, pos, state, player)
+            val billets = state.getValue(BILLETS)
+            if (billets > 1) {
+                level.setBlock(pos, state.setValue(BILLETS, billets - 1), 3)
+            } else {
+                level.setBlock(
+                    pos,
+                    state.fluidState.createLegacyBlock(),
+                    3
+                )
+                level.gameEvent(player, GameEvent.BLOCK_DESTROY, pos)
+            }
+            val taken = ItemStack(BrokenPromisesItems.FIREWOOD_ITEM, 1)
+            level.playSound(player, pos, SoundEvents.WOOD_HIT, SoundSource.BLOCKS, 1F, 1F)
+            if (!player.inventory.add(taken)) player.drop(taken, false)
+            return InteractionResult.SUCCESS
         }
         return InteractionResult.PASS
-    }
-
-    internal fun takeOne(
-        level: Level,
-        pos: BlockPos,
-        state: BlockState,
-        player: Player
-    ): InteractionResult {
-        val billets = state.getValue(BILLETS)
-        if (billets > 1) {
-            level.setBlock(pos, state.setValue(BILLETS, billets - 1), 3)
-        } else {
-            level.setBlock(
-                pos,
-                state.fluidState.createLegacyBlock(),
-                3
-            )
-            level.gameEvent(player, GameEvent.BLOCK_DESTROY, pos)
-        }
-        val taken = ItemStack(Items.FIREWOOD_ITEM, 1)
-        level.playSound(player, pos, SoundEvents.WOOD_HIT, SoundSource.BLOCKS, 1F, 1F)
-        if (!player.inventory.add(taken)) player.drop(taken, false)
-        return InteractionResult.SUCCESS
     }
 
     override fun canBeReplaced(state: BlockState, context: BlockPlaceContext): Boolean {
@@ -282,7 +273,7 @@ public class FirewoodBlock(properties: Properties) : Block(properties), SimpleWa
                 if (context.clickedFace.axis === state.getValue(BlockStateProperties.AXIS)) {
                     if (level.isClientSide) return true
                     level.destroyBlock(pos, false, player, 512)
-                    val firewood = ItemStack(Items.FIREWOOD_ITEM.value(), 4)
+                    val firewood = ItemStack(BrokenPromisesItems.FIREWOOD_ITEM, 4)
                     popResource(level, pos, firewood)
                     val axe = context.itemInHand
                     axe.hurtAndBreak(1, player, context.hand)

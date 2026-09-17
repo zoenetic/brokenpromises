@@ -3,10 +3,11 @@ package dev.zoenetic.brokenpromises.survival
 import dev.zoenetic.brokenpromises.survival.effects.player.BreathParticles
 import dev.zoenetic.brokenpromises.survival.effects.player.SpeedPenalty
 import dev.zoenetic.brokenpromises.survival.platform.Platform
-import dev.zoenetic.brokenpromises.survival.registry.Blocks
-import dev.zoenetic.brokenpromises.survival.registry.Items
-import dev.zoenetic.brokenpromises.survival.registry.Sounds
+import dev.zoenetic.brokenpromises.survival.registry.BrokenPromisesBlocks
+import dev.zoenetic.brokenpromises.survival.registry.BrokenPromisesItems
+import dev.zoenetic.brokenpromises.survival.registry.BrokenPromisesSounds
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
+import dev.zoenetic.brokenpromises.survival.state.ServerState
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
 import net.minecraft.server.level.ServerLevel
@@ -24,22 +25,25 @@ public object Survival {
     public lateinit var platform: Platform
         private set
 
+    public lateinit var serverState: ServerState
+        private set
+
+    public fun init(platform: Platform) {
+        this.platform = platform
+        BrokenPromisesBlocks.init()
+        BrokenPromisesItems.init()
+        BrokenPromisesSounds.init()
+        LOGGER.info(
+            "Broken Promises: Survival (server) starting on {} (Minecraft 26.2)",
+            platform.name
+        )
+    }
+
     public fun tick(level: ServerLevel) {
         PlayerConditions.tick(level)
         Vitals.tick(level)
         Exertion.tick(level)
         SpeedPenalty.tick(level)
         BreathParticles.tick(level)
-    }
-
-    public fun init(platform: Platform) {
-        this.platform = platform
-        Blocks.init()
-        Items.init()
-        Sounds.init()
-        LOGGER.info(
-            "Broken Promises: Survival (server) starting on {} (Minecraft 26.2)",
-            platform.name
-        )
     }
 }

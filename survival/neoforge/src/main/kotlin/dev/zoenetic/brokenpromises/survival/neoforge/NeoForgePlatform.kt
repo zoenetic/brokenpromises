@@ -1,6 +1,9 @@
 package dev.zoenetic.brokenpromises.survival.neoforge
 
-import dev.zoenetic.brokenpromises.survival.platform.*
+import dev.zoenetic.brokenpromises.survival.platform.ChunkView
+import dev.zoenetic.brokenpromises.survival.platform.Platform
+import dev.zoenetic.brokenpromises.survival.platform.PlayerStore
+import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
 import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
@@ -19,23 +22,23 @@ public object NeoForgePlatform : Platform {
         FMLLoader.getCurrent().getLoadingModList()
             .getModFileById(modId) != null
 
-    override val registrar: NeoForgeRegistrar = NeoForgeRegistrar
+    override val register: NeoForgeRegister = NeoForgeRegister
 
     override val heatSources: ChunkView<HeatSourceIndex> = NeoForgeChunkView(
-        registrar.attachment("chunk_heat_sources") {
+        register.attachment("chunk_heat_sources") {
             AttachmentType.builder(Supplier { HeatSourceIndex() }).build()
         }
     )
 
     override val playerConditions: PlayerStore<PlayerConditions> =
         NeoForgePlayerStore(
-            registrar.attachment("player_conditions") {
+            register.attachment("player_conditions") {
                 AttachmentType.builder(Supplier { PlayerConditions.EMPTY }).build()
             }
         )
 
     override val vitals: SyncedPlayerStore<Vitals> = NeoForgeSyncedPlayerStore(
-        registrar.attachment("vitals") {
+        register.attachment("vitals") {
             AttachmentType.builder(Supplier { Vitals.DEFAULT })
                 .serialize(Vitals.CODEC.fieldOf("vitals"))
                 .sync(Vitals.STREAM_CODEC)
@@ -44,6 +47,6 @@ public object NeoForgePlatform : Platform {
     )
 
     public fun init(bus: IEventBus) {
-        registrar.init(bus)
+        register.init(bus)
     }
 }

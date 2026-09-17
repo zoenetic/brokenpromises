@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "brokenpromises:firewood"
+  ],
+  "result": {
+    "id": "minecraft:stick"
+  }
+}

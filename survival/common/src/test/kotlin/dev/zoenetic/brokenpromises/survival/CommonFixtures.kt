@@ -8,7 +8,6 @@ import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
 import net.minecraft.SharedConstants
 import net.minecraft.core.*
-import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.data.registries.VanillaRegistries
 import net.minecraft.resources.Identifier
@@ -30,6 +29,8 @@ import net.minecraft.world.level.biome.MultiNoiseBiomeSource
 import net.minecraft.world.level.biome.MultiNoiseBiomeSourceParameterLists
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunk
@@ -43,42 +44,42 @@ import net.minecraft.world.phys.AABB
 import org.mockito.Mockito.*
 import java.util.*
 
-/**
- * A unit test cannot construct a mod block: before [Bootstrap.bootStrap] the vanilla
- * registries do not exist, and afterwards they are frozen, and the Block and Item
- * constructors need an unfrozen registry for their holders. So block and item entries
- * are handed back as unbound references, which throw only if something reads them.
- * Real registration is exercised by the loader gametests. Sounds have no such
- * constraint and are built directly so client code under test can use them.
- */
-object TestRegistrar : Registrar {
+object TestRegistry : Register {
     private fun id(name: String) = Identifier.fromNamespaceAndPath(Survival.NAMESPACE, name)
 
+    // Bootstrap.bootStrap() freezes BuiltInRegistries, and Block's constructor needs an
+    // unfrozen block registry to take an intrusive holder, so the mod's own content is stubbed
     override fun block(
         name: String,
         properties: BlockBehaviour.Properties,
         factory: (BlockBehaviour.Properties) -> Block
-    ): Holder<Block> =
-        Holder.Reference.createStandAlone(
-            BuiltInRegistries.BLOCK,
-            ResourceKey.create(Registries.BLOCK, id(name))
-        )
+    ): Holder<Block> = Holder.direct(mock(Block::class.java))
+
+    override fun blockEntity(
+        name: String,
+        factory: (BlockEntityType<*>, BlockPos, BlockState) -> BlockEntity,
+        blocks: () -> Set<Block>
+    ): Holder<BlockEntityType<*>> = Holder.direct(mock(BlockEntityType::class.java))
 
     override fun blockItem(
         name: String,
-        block: Holder<Block>,
+        block: () -> Block,
         properties: Item.Properties
-    ): Holder<Item> =
-        Holder.Reference.createStandAlone(
-            BuiltInRegistries.ITEM,
-            ResourceKey.create(Registries.ITEM, id(name))
-        )
+    ): Holder<Item> = Holder.direct(mock(Item::class.java))
 
     override fun sound(
         name: String,
         factory: (Identifier) -> SoundEvent
     ): Holder<SoundEvent> =
         Holder.direct(factory(id(name)))
+
+    override fun standingAndWallBlockItem(
+        name: String,
+        block: () -> Block,
+        wallBlock: () -> Block,
+        attachmentDirection: Direction,
+        properties: Item.Properties
+    ): Holder<Item> = Holder.direct(mock(Item::class.java))
 }
 
 object TestPlatform : Platform {
@@ -86,7 +87,7 @@ object TestPlatform : Platform {
     override val isDevelopmentEnvironment: Boolean = false
     override fun isModLoaded(modId: String): Boolean = false
 
-    override val registrar: Registrar = TestRegistrar
+    override val register: Register = TestRegistry
 
     override val heatSources: ChunkView<HeatSourceIndex> =
         object : ChunkView<HeatSourceIndex> {

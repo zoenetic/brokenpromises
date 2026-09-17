@@ -100,14 +100,14 @@ object SurvivalTests {
             .thenExecute {
                 ambient = helper.sample(player).temperature
                 start = helper.require(Vitals.get(player), "seeded vitals")
-                    .bodyTemperature.value.value
+                    .bodyTemperature.celsius.value
             }
             .thenExecuteFor(100) { /* the mod's own tick handlers do the work */ }
             .thenExecute {
                 val began = helper.require(start, "a captured starting temperature")
                 val outside = helper.require(ambient, "a captured ambient temperature")
                 val now = helper.require(Vitals.get(player), "vitals")
-                    .bodyTemperature.value.value
+                    .bodyTemperature.celsius.value
                 val drift = now - began
                 val where = "ambient ${outside.value}C, body $began -> $now (drift $drift)"
                 when {

@@ -1,7 +1,10 @@
 package dev.zoenetic.brokenpromises.survival.fabric
 
 import dev.zoenetic.brokenpromises.survival.Survival.MOD_ID
-import dev.zoenetic.brokenpromises.survival.platform.*
+import dev.zoenetic.brokenpromises.survival.platform.ChunkView
+import dev.zoenetic.brokenpromises.survival.platform.Platform
+import dev.zoenetic.brokenpromises.survival.platform.PlayerStore
+import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
 import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
 import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
@@ -17,7 +20,7 @@ public object FabricPlatform : Platform {
 
     override fun isModLoaded(modId: String): Boolean = FabricLoader.getInstance().isModLoaded(modId)
 
-    override val registrar: FabricRegistrar = FabricRegistrar
+    override val register: FabricRegister = FabricRegister
 
     override val heatSources: ChunkView<HeatSourceIndex> = FabricChunkView(
         AttachmentRegistry.create(id("chunk_heat_sources")) {

@@ -20,16 +20,22 @@ sourceSets {
         compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
         runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
     }
+    datagen {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+    }
 }
 
 configurations {
     commonGametest { canBeResolved = true }
     commonGametestClasses { canBeResolved = true }
+    commonDatagen { canBeResolved = true }
 }
 
 dependencies {
     commonGametest(project(path: common_project.path, configuration: 'commonGametest'))
     commonGametestClasses(project(path: common_project.path, configuration: 'commonGametestClasses'))
+    commonDatagen(project(path: common_project.path, configuration: 'commonDatagen'))
 }
 
 sourceSets.gametest.compileClasspath += configurations.commonGametestClasses
@@ -37,6 +43,11 @@ sourceSets.gametest.compileClasspath += configurations.commonGametestClasses
 tasks.named('compileGametestKotlin') {
     dependsOn(configurations.commonGametest)
     source(configurations.commonGametest.asFileTree.matching { include '**/*.kt' })
+}
+
+tasks.named('compileDatagenKotlin') {
+    dependsOn(configurations.commonDatagen)
+    source(configurations.commonDatagen.asFileTree.matching { include '**/*.kt' })
 }
 
 neoForge {
@@ -67,9 +78,11 @@ neoForge {
         data {
             clientData()
             gameDirectory = this.mkdir(this.file('runs/data'))
+            // Generated data is loader-agnostic, so it lands in common and both
+            // loaders ship it through the commonResources configuration.
             programArguments.addAll '--mod', project.mod_id, '--all',
-                    '--output', file('src/generated/resources/').absolutePath,
-                    '--existing', file('src/main/resources/').absolutePath
+                    '--output', common_project.file('src/generated/resources/').absolutePath,
+                    '--existing', common_project.file('src/main/resources/').absolutePath
         }
     }
 
@@ -77,11 +90,33 @@ neoForge {
         "${mod_id}" {
             sourceSet sourceSets.main
             sourceSet sourceSets.gametest
+            sourceSet sourceSets.datagen
         }
     }
 }
 
-sourceSets.main.resources { srcDir 'src/generated/resources' }
+// `runClientWithDatagen` regenerates data, then launches the client. Kept as a
+// separate task from `runClient` because the data run is a full headless client
+// start and the output is committed, so most launches have nothing to regenerate.
+// Gradle copies mod resources before any run task and never runs a task twice in
+// one build, so the fresh output is copied into the run's resources by a second
+// task after datagen finishes and before the client starts.
+def syncGeneratedResources = tasks.register('syncGeneratedResources', Copy) {
+    from(common_project.file('src/generated/resources'))
+    into(layout.buildDirectory.dir('resources/main'))
+    exclude('.cache/**')
+}
+afterEvaluate {
+    def datagen = tasks.named('runData')
+    def runClient = tasks.named('runClient')
+    syncGeneratedResources.configure { mustRunAfter(datagen) }
+    runClient.configure { mustRunAfter(syncGeneratedResources) }
+    tasks.register('runClientWithDatagen') {
+        group = runClient.get().group
+        description = 'Regenerates data, syncs it into the run resources, then launches the client.'
+        dependsOn(datagen, syncGeneratedResources, runClient)
+    }
+}
 
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
 ['apiElements', 'runtimeElements', 'sourcesElements'].each { variant ->

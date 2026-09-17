@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.client
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.registry.Sounds
+import dev.zoenetic.brokenpromises.survival.registry.BrokenPromisesSounds
 import dev.zoenetic.brokenpromises.survival.units.Time
 import dev.zoenetic.brokenpromises.survival.vitals.Breath
 import net.minecraft.client.Minecraft
@@ -19,7 +19,7 @@ public data class BreathSounds(
     internal fun playBreathSound(breath: Breath, gameTime: Time) {
         val pitch = breath.pitch
         val volume = breath.volume
-        val instance = SimpleSoundInstance.forUI(Sounds.BREATH.value(), pitch, volume)
+        val instance = SimpleSoundInstance.forUI(BrokenPromisesSounds.BREATH, pitch, volume)
         val result = Minecraft.getInstance().soundManager.play(instance)
         if (result == PlayResult.NOT_STARTED) {
             Survival.LOGGER.debug("breath sound not started")
