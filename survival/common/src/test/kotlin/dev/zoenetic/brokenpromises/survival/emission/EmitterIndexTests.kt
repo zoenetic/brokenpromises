@@ -85,7 +85,7 @@ class EmitterIndexTests {
     @Test
     fun `putting then removing a single source clears it from the index`() {
         val chunk = chunk()
-        Emitters.onBlockChanged(chunk, inChunk, campfire)
+        Emitters.onBlockChanged(chunk, inChunk, air, campfire)
         assertTrue(indexOf(chunk).containsKey(inChunk.asLong()))
         Emitters.remove(chunk, inChunk)
         assertFalse(indexOf(chunk).containsKey(inChunk.asLong()))
@@ -101,15 +101,15 @@ class EmitterIndexTests {
     @Test
     fun `changing a block to a non-source no-ops the index`() {
         val chunk = chunk()
-        Emitters.onBlockChanged(chunk, inChunk, stone)
+        Emitters.onBlockChanged(chunk, inChunk, air, stone)
         assertTrue(indexOf(chunk).isEmpty())
     }
 
     @Test
     fun `updating one heat source to another leaves one entry`() {
         val chunk = chunk()
-        Emitters.onBlockChanged(chunk, inChunk, campfire)
-        Emitters.onBlockChanged(chunk, inChunk, furnace)
+        Emitters.onBlockChanged(chunk, inChunk, air, campfire)
+        Emitters.onBlockChanged(chunk, inChunk, campfire, furnace)
         val index = indexOf(chunk)
         assertEquals(1, index.size)
     }
@@ -117,8 +117,8 @@ class EmitterIndexTests {
     @Test
     fun `replacing a single source with air drops that blockpos from the index`() {
         val chunk = chunk()
-        Emitters.onBlockChanged(chunk, inChunk, campfire)
-        Emitters.onBlockChanged(chunk, inChunk, air)
+        Emitters.onBlockChanged(chunk, inChunk, air, campfire)
+        Emitters.onBlockChanged(chunk, inChunk, campfire, air)
         assertFalse(indexOf(chunk).containsKey(inChunk.asLong()))
     }
 

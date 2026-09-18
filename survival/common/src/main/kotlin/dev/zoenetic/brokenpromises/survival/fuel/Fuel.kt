@@ -1,12 +1,12 @@
 package dev.zoenetic.brokenpromises.survival.fuel
 
-@JvmInline
-public value class Fuel(public val level: Int) {
+public data class Fuel(public val level: Int) {
     init {
         require(level in 0..15) { "fuel level out of range: $level" }
     }
 
-    public operator fun plus(other: Fuel): Fuel = Fuel((level + other.level).coerceAtMost(MAX.level))
+    public operator fun plus(other: Fuel): Fuel =
+        Fuel((level + other.level).coerceAtMost(MAX.level))
 
     public operator fun compareTo(other: Fuel): Int = level.compareTo(other.level)
 

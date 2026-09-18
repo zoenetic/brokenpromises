@@ -15,9 +15,10 @@ public abstract class LevelChunkMixin {
     private void brokenpromises$afterSetBlockState(BlockPos pos, BlockState state, int flags,
                                                    CallbackInfoReturnable<BlockState> cir) {
         if (cir.getReturnValue() == null) return;
+        var oldState = cir.getReturnValue();
         var chunk = (LevelChunk) (Object) this;
         if (chunk.getLevel().isClientSide()) return;
-        Emitters.onBlockChanged(chunk, pos, state);
+        Emitters.onBlockChanged(chunk, pos, oldState, state);
     }
 }
 

@@ -28,7 +28,6 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT
 import net.minecraft.world.phys.BlockHitResult
-import kotlin.math.ceil
 
 public open class FuelledTorchBlock(
     flameParticle: SimpleParticleType,
@@ -39,7 +38,7 @@ public open class FuelledTorchBlock(
         registerDefaultState(
             stateDefinition.any()
                 .setValue(LIT, false)
-                .setValue(FUEL_LEVEL, maxFuel.level)
+                .setValue(FUEL_LEVEL, 15)
         )
     }
 
@@ -55,6 +54,9 @@ public open class FuelledTorchBlock(
             .add(LIT)
             .add(FUEL_LEVEL)
     }
+
+    override val maxFuel: Fuel
+        get() = Fuel(15)
 
     override fun onPlace(
         state: BlockState,
@@ -97,22 +99,23 @@ public open class FuelledTorchBlock(
     internal val props: Properties get() = properties
     internal val flame: SimpleParticleType get() = flameParticle
 
-    // a getter, not a field: this is read while the states are built, before fields are set
-    override val maxFuel: Fuel get() = Fuel.MAX
-
     override fun getHeat(state: BlockState): Power =
         if (state.getValue(LIT)) HEAT else Power(0.0)
 
     override fun getLight(state: BlockState): Light {
         if (!state.getValue(LIT)) return Light.NONE
-        val fraction = getFuel(state).level / maxFuel.level.toDouble()
-        return Light(ceil(Light.MAX.value * fraction).toInt())
+        val fraction = getFuel(state).level / maxFuel.level
+        val max = Light.MAX.value
+        val light = fraction * max
+        return Light(light)
     }
 
     override fun getFuel(state: BlockState): Fuel = Fuel(state.getValue(FUEL_LEVEL))
 
-    override fun setFuel(state: BlockState, fuel: Fuel): BlockState =
-        state.setValue(FUEL_LEVEL, fuel.coerceAtMost(maxFuel).level)
+    override fun setFuel(state: BlockState, fuel: Fuel): BlockState {
+        val newValue = fuel.coerceAtMost(maxFuel)
+        return state.setValue(FUEL_LEVEL, newValue.level)
+    }
 
     public companion object {
 

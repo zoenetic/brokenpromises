@@ -10,7 +10,7 @@ public value class Time(public val value: Long) {
     public operator fun plus(o: Duration): Time = Time(value + o.value)
     public operator fun minus(o: Time): Duration = Duration(value - o.value)
     public operator fun minus(o: Duration): Time = Time(value - o.value)
-    public operator fun times(k: Int): Time = Time(value * k)
+    public operator fun times(k: Int): Duration = Duration(value * k)
     public operator fun compareTo(o: Time): Int = value.compareTo(o.value)
 
     public companion object {

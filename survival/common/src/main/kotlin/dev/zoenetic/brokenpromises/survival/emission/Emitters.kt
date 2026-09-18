@@ -176,7 +176,12 @@ public object Emitters {
     }
 
     @JvmStatic
-    public fun onBlockChanged(chunk: LevelChunk, pos: BlockPos, state: BlockState) {
+    public fun onBlockChanged(
+        chunk: LevelChunk,
+        pos: BlockPos,
+        oldState: BlockState,
+        state: BlockState
+    ) {
         val time = chunk.level.gameTime
         if (!state.isEmittingBlock()) return remove(chunk, pos)
         val index = Survival.platform.emitters.get(chunk)
