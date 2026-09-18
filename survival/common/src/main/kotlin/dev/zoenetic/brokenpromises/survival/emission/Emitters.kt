@@ -5,8 +5,11 @@ import dev.zoenetic.brokenpromises.survival.units.Power
 import dev.zoenetic.brokenpromises.survival.units.TemperatureDifference
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.Identifier
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.tags.TagKey
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
@@ -15,6 +18,11 @@ import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.phys.Vec3
 import kotlin.math.ceil
 import kotlin.math.sqrt
+
+public val EMITTERS: TagKey<Block> = TagKey.create(
+    Registries.BLOCK,
+    Identifier.fromNamespaceAndPath(Survival.NAMESPACE, "emitters")
+)
 
 // vanilla blocks can't implement EmittingBlock, so their heat lives here
 internal val VANILLA_HEAT: Map<Block, Power> by lazy {

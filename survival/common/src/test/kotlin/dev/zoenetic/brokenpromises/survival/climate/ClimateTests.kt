@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ClimateProbeTests {
+class ClimateTests {
 
     private val dry = Humidity(0.0)
     private val humid = Humidity(1.0)
