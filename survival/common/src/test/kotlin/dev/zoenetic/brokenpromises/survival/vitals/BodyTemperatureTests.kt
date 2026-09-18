@@ -1,7 +1,5 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
-import dev.zoenetic.brokenpromises.survival.probe.ConductiveMedium
-import dev.zoenetic.brokenpromises.survival.probe.ConductiveSurface
 import dev.zoenetic.brokenpromises.survival.units.*
 import dev.zoenetic.brokenpromises.survival.vitals.BodyTemperature.Companion.approach
 import dev.zoenetic.brokenpromises.survival.vitals.BodyTemperature.Companion.halfLife

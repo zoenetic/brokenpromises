@@ -1,8 +1,8 @@
 package dev.zoenetic.brokenpromises.survival.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import dev.zoenetic.brokenpromises.survival.block.SurvivalBlockProperties;
-import dev.zoenetic.brokenpromises.survival.interaction.CampfireInteractions;
+import dev.zoenetic.brokenpromises.survival.fire.CampfireInteractions;
+import dev.zoenetic.brokenpromises.survival.fuel.FuelProperties;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -32,12 +32,12 @@ public abstract class CampfireBlockMixin extends Block {
     private void brokenpromises$defaultUnlit(CallbackInfo ci) {
         registerDefaultState(defaultBlockState()
                 .setValue(CampfireBlock.LIT, false)
-                .setValue(SurvivalBlockProperties.FUEL_LEVEL, SurvivalBlockProperties.MAX_FUEL));
+                .setValue(FuelProperties.FUEL_LEVEL, 15));
     }
 
     @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
     private void brokenpromises$properties(StateDefinition.Builder<Block, BlockState> builder, CallbackInfo ci) {
-        builder.add(SurvivalBlockProperties.FUEL_LEVEL);
+        builder.add(FuelProperties.FUEL_LEVEL);
     }
 
     @ModifyReturnValue(method = "getStateForPlacement", at = @At("RETURN"))

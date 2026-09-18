@@ -8,6 +8,13 @@ import net.minecraft.world.level.block.Block
 
 public object BrokenPromisesTags {
 
+    public val EMITTERS: TagKey<Block> = TagKey.create(
+        Registries.BLOCK,
+        Identifier.fromNamespaceAndPath(
+            Survival.NAMESPACE, "emitters"
+        )
+    )
+
     public val FUELLED_LIGHT_SOURCE_BLOCKS: TagKey<Block> = TagKey.create(
         Registries.BLOCK,
         Identifier.fromNamespaceAndPath(

@@ -2,7 +2,7 @@ package dev.zoenetic.brokenpromises.survival.neoforge
 
 import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.debug.*
-import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
+import dev.zoenetic.brokenpromises.survival.emission.Emitters.rebuildEmitters
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -43,7 +43,7 @@ public class NeoForgeSurvival(modBus: IEventBus) {
         }
         bus.addListener(ChunkEvent.Load::class.java) { event ->
             val chunk = event.chunk
-            ChunkHeatSources.rebuild(chunk)
+            chunk.rebuildEmitters()
         }
         bus.addListener(LevelTickEvent.Post::class.java) { event ->
             val level = event.level

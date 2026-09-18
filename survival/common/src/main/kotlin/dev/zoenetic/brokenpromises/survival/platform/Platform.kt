@@ -1,8 +1,8 @@
 package dev.zoenetic.brokenpromises.survival.platform
 
-import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
-import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
+import dev.zoenetic.brokenpromises.survival.conditions.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
 public interface Platform {
     public val name: String
@@ -11,7 +11,7 @@ public interface Platform {
 
     public val register: Register
 
-    public val heatSources: ChunkView<HeatSourceIndex>
+    public val emitters: ChunkView<Long2ObjectOpenHashMap<Long>>
     public val playerConditions: PlayerStore<PlayerConditions>
     public val vitals: SyncedPlayerStore<Vitals>
 }

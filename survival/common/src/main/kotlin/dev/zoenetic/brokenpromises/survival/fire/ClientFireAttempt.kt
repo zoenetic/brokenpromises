@@ -1,6 +1,5 @@
 package dev.zoenetic.brokenpromises.survival.fire
 
-import dev.zoenetic.brokenpromises.survival.state.LIGHTING_FIRE_GRACE_PERIOD
 import net.minecraft.client.player.LocalPlayer
 
 // client only

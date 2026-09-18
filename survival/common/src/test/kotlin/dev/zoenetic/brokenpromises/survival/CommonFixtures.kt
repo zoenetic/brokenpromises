@@ -1,11 +1,11 @@
 package dev.zoenetic.brokenpromises.survival
 
+import dev.zoenetic.brokenpromises.survival.climate.temperatureFromNoise
+import dev.zoenetic.brokenpromises.survival.conditions.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.platform.*
-import dev.zoenetic.brokenpromises.survival.probe.temperatureFromNoise
-import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
-import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.SharedConstants
 import net.minecraft.core.*
 import net.minecraft.core.registries.Registries
@@ -89,12 +89,12 @@ object TestPlatform : Platform {
 
     override val register: Register = TestRegistry
 
-    override val heatSources: ChunkView<HeatSourceIndex> =
-        object : ChunkView<HeatSourceIndex> {
-            private val byChunk = IdentityHashMap<LevelChunk, HeatSourceIndex>()
+    override val emitters: ChunkView<Long2ObjectOpenHashMap<Long>> =
+        object : ChunkView<Long2ObjectOpenHashMap<Long>> {
+            private val byChunk = IdentityHashMap<LevelChunk, Long2ObjectOpenHashMap<Long>>()
 
-            override fun get(chunk: LevelChunk): HeatSourceIndex =
-                byChunk.getOrPut(chunk) { HeatSourceIndex() }
+            override fun get(chunk: LevelChunk): Long2ObjectOpenHashMap<Long> =
+                byChunk.getOrPut(chunk) { Long2ObjectOpenHashMap<Long>() }
         }
 
     override val playerConditions: PlayerStore<PlayerConditions> =
@@ -160,6 +160,7 @@ object CommonFixtures {
         doReturn(HEIGHT).`when`(level).height
         doReturn(MIN_Y).`when`(level).minY
         doReturn(false).`when`(level).isClientSide
+        doReturn(0L).`when`(level).gameTime
         doReturn(containerFactory).`when`(level).palettedContainerFactory()
         return level
     }

@@ -13,12 +13,18 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.resources.Identifier
 import net.minecraft.world.level.block.Rotation
-import net.neoforged.bus.api.SubscribeEvent
-import net.neoforged.fml.common.EventBusSubscriber
+import net.neoforged.bus.api.IEventBus
+import net.neoforged.fml.common.Mod
 import net.neoforged.neoforge.event.RegisterGameTestsEvent
 
-@EventBusSubscriber(modid = Survival.MOD_ID)
-public object SurvivalGameTests {
+// Not an @EventBusSubscriber: KotlinLangForge injects those once per @Mod class, and this
+// mod has several (main, client, datagen), so the tests would be registered more than once.
+@Mod(Survival.MOD_ID)
+public class SurvivalGameTests(modBus: IEventBus) {
+
+    init {
+        modBus.addListener(RegisterGameTestsEvent::class.java, ::register)
+    }
 
     private val DEFAULT_ENVIRONMENT: Holder<TestEnvironmentDefinition<*>> =
         Holder.direct<TestEnvironmentDefinition<*>>(
@@ -27,9 +33,7 @@ public object SurvivalGameTests {
 
     private val EMPTY_STRUCTURE: Identifier = Identifier.withDefaultNamespace("empty")
 
-    @SubscribeEvent
-    @JvmStatic
-    public fun register(event: RegisterGameTestsEvent) {
+    private fun register(event: RegisterGameTestsEvent) {
         for (test in SurvivalTests.ALL) {
             event.registerTest(
                 Identifier.fromNamespaceAndPath(Survival.NAMESPACE, test.name),

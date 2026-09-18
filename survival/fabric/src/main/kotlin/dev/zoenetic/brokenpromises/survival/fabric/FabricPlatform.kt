@@ -1,13 +1,13 @@
 package dev.zoenetic.brokenpromises.survival.fabric
 
 import dev.zoenetic.brokenpromises.survival.Survival.MOD_ID
+import dev.zoenetic.brokenpromises.survival.conditions.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.platform.ChunkView
 import dev.zoenetic.brokenpromises.survival.platform.Platform
 import dev.zoenetic.brokenpromises.survival.platform.PlayerStore
 import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
-import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
-import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate
 import net.fabricmc.loader.api.FabricLoader
@@ -22,9 +22,9 @@ public object FabricPlatform : Platform {
 
     override val register: FabricRegister = FabricRegister
 
-    override val heatSources: ChunkView<HeatSourceIndex> = FabricChunkView(
-        AttachmentRegistry.create(id("chunk_heat_sources")) {
-            it.initializer { HeatSourceIndex() }
+    override val emitters: ChunkView<Long2ObjectOpenHashMap<Long>> = FabricChunkView(
+        AttachmentRegistry.create(id("chunk_emitters")) {
+            it.initializer { Long2ObjectOpenHashMap<Long>() }
         }
     )
 

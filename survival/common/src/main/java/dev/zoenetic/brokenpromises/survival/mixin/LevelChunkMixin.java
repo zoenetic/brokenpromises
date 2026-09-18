@@ -1,6 +1,6 @@
 package dev.zoenetic.brokenpromises.survival.mixin;
 
-import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources;
+import dev.zoenetic.brokenpromises.survival.emission.Emitters;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -17,7 +17,7 @@ public abstract class LevelChunkMixin {
         if (cir.getReturnValue() == null) return;
         var chunk = (LevelChunk) (Object) this;
         if (chunk.getLevel().isClientSide()) return;
-        ChunkHeatSources.INSTANCE.onBlockChanged(chunk, pos, state);
+        Emitters.onBlockChanged(chunk, pos, state);
     }
 }
 

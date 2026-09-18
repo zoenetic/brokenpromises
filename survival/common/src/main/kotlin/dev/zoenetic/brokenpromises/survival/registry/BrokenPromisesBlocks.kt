@@ -1,10 +1,10 @@
 package dev.zoenetic.brokenpromises.survival.registry
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.block.FirewoodBlock
-import dev.zoenetic.brokenpromises.survival.block.FuelledTorchBlock
-import dev.zoenetic.brokenpromises.survival.block.FuelledWallTorchBlock
+import dev.zoenetic.brokenpromises.survival.fuel.FirewoodBlock
 import dev.zoenetic.brokenpromises.survival.platform.getValue
+import dev.zoenetic.brokenpromises.survival.torch.FuelledTorchBlock
+import dev.zoenetic.brokenpromises.survival.torch.FuelledWallTorchBlock
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.SoundType
@@ -39,7 +39,7 @@ public object BrokenPromisesBlocks {
         FuelledWallTorchBlock(ParticleTypes.FLAME, props)
     }
 
-    public val ALL: List<Block> = listOf(
+    public val ALL: List<Block> get() = listOf(
         FIREWOOD, FUELLED_TORCH_BLOCK, FUELLED_WALL_TORCH_BLOCK
     )
 

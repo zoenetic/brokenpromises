@@ -1,9 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
-import dev.zoenetic.brokenpromises.survival.effects.player.SHIVER_CEASES
 import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Duration
-import dev.zoenetic.brokenpromises.survival.units.MET
 import net.minecraft.SharedConstants
 import kotlin.math.pow
 import kotlin.test.*

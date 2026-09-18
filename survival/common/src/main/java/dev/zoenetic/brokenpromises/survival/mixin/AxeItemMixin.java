@@ -1,6 +1,6 @@
 package dev.zoenetic.brokenpromises.survival.mixin;
 
-import dev.zoenetic.brokenpromises.survival.block.FirewoodBlock;
+import dev.zoenetic.brokenpromises.survival.fuel.FirewoodBlock;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.context.UseOnContext;

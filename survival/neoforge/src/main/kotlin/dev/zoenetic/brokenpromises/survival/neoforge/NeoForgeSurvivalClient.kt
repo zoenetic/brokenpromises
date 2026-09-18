@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.neoforge
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.client.HEARTBEAT
+import dev.zoenetic.brokenpromises.survival.vitals.client.HEARTBEAT
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.common.Mod

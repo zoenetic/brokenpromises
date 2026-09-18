@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.units.Duration
-import dev.zoenetic.brokenpromises.survival.units.MET
 import dev.zoenetic.brokenpromises.survival.units.Time
 import io.netty.buffer.ByteBuf
 import net.minecraft.network.codec.StreamCodec

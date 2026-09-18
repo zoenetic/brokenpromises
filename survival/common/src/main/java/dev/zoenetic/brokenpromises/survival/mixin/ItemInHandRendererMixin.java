@@ -1,8 +1,8 @@
 package dev.zoenetic.brokenpromises.survival.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.zoenetic.brokenpromises.survival.client.LightingCampfireRenderer;
-import dev.zoenetic.brokenpromises.survival.client.ShiverRenderer;
+import dev.zoenetic.brokenpromises.survival.fire.client.LightingCampfireRenderer;
+import dev.zoenetic.brokenpromises.survival.vitals.client.ShiverRenderer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;

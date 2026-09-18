@@ -1,9 +1,9 @@
 package dev.zoenetic.brokenpromises.survival.gametest
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.probe.getHumidity
-import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
-import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
+import dev.zoenetic.brokenpromises.survival.climate.getHumidity
+import dev.zoenetic.brokenpromises.survival.conditions.PlayerConditions
+import dev.zoenetic.brokenpromises.survival.emission.Emitters
 import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Time
 import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_HIGH
@@ -132,10 +132,7 @@ object SurvivalTests {
         helper.setBlock(relative, Blocks.CAMPFIRE)
 
         val absolute = helper.absolutePos(relative)
-        val index = helper.require(
-            ChunkHeatSources.of(helper.level.getChunkAt(absolute)),
-            "a heat index for the chunk holding $absolute",
-        )
+        val index = Survival.platform.emitters.get(helper.level.getChunkAt(absolute))
         if (!index.containsKey(absolute.asLong())) {
             throw helper.assertionException(
                 "campfire at $absolute never reached the chunk's heat index (LevelChunkMixin?)"
@@ -150,10 +147,7 @@ object SurvivalTests {
         helper.setBlock(relative, Blocks.AIR)
 
         val absolute = helper.absolutePos(relative)
-        val index = helper.require(
-            ChunkHeatSources.of(helper.level.getChunkAt(absolute)),
-            "a heat index for the chunk holding $absolute",
-        )
+        val index = Survival.platform.emitters.get(helper.level.getChunkAt(absolute))
         if (index.containsKey(absolute.asLong())) {
             throw helper.assertionException("campfire at $absolute is still in the heat index")
         }
@@ -166,8 +160,8 @@ object SurvivalTests {
         val player = helper.playerAt(BlockPos(2, 2, 1))
 
         val absolute = helper.absolutePos(campfire)
-        val sources = ChunkHeatSources.around(player)
-        if (sources.none { it.position == absolute }) {
+        val sources = Emitters.atPlayer(player)
+        if (sources.none { it == absolute }) {
             throw helper.assertionException(
                 "campfire at $absolute was not among the ${sources.size} sources found " +
                         "around the player at ${player.blockPosition()}"

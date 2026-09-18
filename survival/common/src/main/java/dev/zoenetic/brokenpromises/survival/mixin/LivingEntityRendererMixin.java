@@ -1,8 +1,8 @@
 package dev.zoenetic.brokenpromises.survival.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.zoenetic.brokenpromises.survival.client.LightingCampfireRenderer;
-import dev.zoenetic.brokenpromises.survival.client.ShiverRenderer;
+import dev.zoenetic.brokenpromises.survival.fire.client.LightingCampfireRenderer;
+import dev.zoenetic.brokenpromises.survival.vitals.client.ShiverRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;

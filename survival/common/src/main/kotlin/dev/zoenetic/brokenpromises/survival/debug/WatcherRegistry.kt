@@ -1,9 +1,8 @@
 package dev.zoenetic.brokenpromises.survival.debug
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.probe.getWind
-import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
-import dev.zoenetic.brokenpromises.survival.state.sumHeatSources
+import dev.zoenetic.brokenpromises.survival.climate.getWind
+import dev.zoenetic.brokenpromises.survival.emission.Emitters.heatAtPlayer
 import dev.zoenetic.brokenpromises.survival.units.Duration
 import dev.zoenetic.brokenpromises.survival.units.Time
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
@@ -45,15 +44,22 @@ public object WatcherRegistry {
                 val speed = player.getAttributeValue(MOVEMENT_SPEED)
                 val elapsed: Duration = time - conditions.time
                 if (elapsed.value == 0L) {
-                    // Recomputed here rather than stored: debug only, once a second.
-                    val radiant = sumHeatSources(player.boundingBox.center, ChunkHeatSources.around(player))
+                    val radiant = heatAtPlayer(player)
                     val chunkWind = level.getChunkAt(player.blockPosition()).getWind()
                     player.sendSystemMessage(
                         Component.literal(
                             "FL${"%.1f".format(conditions.feelsLike().value)}" +
                                     " A${"%.1f".format(conditions.temperature.value)}" +
-                                    " H${"%.1f".format(conditions.heat.value)}/${"%.1f".format(radiant.value)}" +
-                                    " W${"%.1f".format(conditions.wind.speed)}/${"%.1f".format(chunkWind.speed)}" +
+                                    " H${"%.1f".format(conditions.heat.value)}/${
+                                        "%.1f".format(
+                                            radiant.value
+                                        )
+                                    }" +
+                                    " W${"%.1f".format(conditions.wind.speed)}/${
+                                        "%.1f".format(
+                                            chunkWind.speed
+                                        )
+                                    }" +
                                     " X${"%.2f".format(conditions.windExposure)}" +
                                     " RH${"%.2f".format(conditions.humidity.value)}" +
                                     " S${"%.1f".format(conditions.sky.value)}${if (conditions.isUnderOpenSky) "o" else "c"}" +

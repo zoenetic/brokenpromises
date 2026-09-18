@@ -1,12 +1,12 @@
 package dev.zoenetic.brokenpromises.survival.neoforge
 
+import dev.zoenetic.brokenpromises.survival.conditions.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.platform.ChunkView
 import dev.zoenetic.brokenpromises.survival.platform.Platform
 import dev.zoenetic.brokenpromises.survival.platform.PlayerStore
 import dev.zoenetic.brokenpromises.survival.platform.SyncedPlayerStore
-import dev.zoenetic.brokenpromises.survival.state.HeatSourceIndex
-import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.loading.FMLLoader
 import net.neoforged.neoforge.attachment.AttachmentType
@@ -24,9 +24,9 @@ public object NeoForgePlatform : Platform {
 
     override val register: NeoForgeRegister = NeoForgeRegister
 
-    override val heatSources: ChunkView<HeatSourceIndex> = NeoForgeChunkView(
-        register.attachment("chunk_heat_sources") {
-            AttachmentType.builder(Supplier { HeatSourceIndex() }).build()
+    override val emitters: ChunkView<Long2ObjectOpenHashMap<Long>> = NeoForgeChunkView(
+        register.attachment("chunk_emitters") {
+            AttachmentType.builder(Supplier { Long2ObjectOpenHashMap<Long>() }).build()
         }
     )
 

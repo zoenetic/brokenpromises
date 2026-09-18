@@ -1,6 +1,6 @@
 package dev.zoenetic.brokenpromises.survival.mixin;
 
-import dev.zoenetic.brokenpromises.survival.client.LightingCampfireRenderer;
+import dev.zoenetic.brokenpromises.survival.fire.client.LightingCampfireRenderer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import org.spongepowered.asm.mixin.Mixin;

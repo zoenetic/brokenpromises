@@ -1,10 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
 import com.mojang.serialization.Codec
-import dev.zoenetic.brokenpromises.survival.probe.getConductanceOfMediumIn
-import dev.zoenetic.brokenpromises.survival.probe.getConductanceOfSurfaceOn
-import dev.zoenetic.brokenpromises.survival.probe.getInsulation
-import dev.zoenetic.brokenpromises.survival.state.PlayerConditions
+import dev.zoenetic.brokenpromises.survival.conditions.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.units.*
 import io.netty.buffer.ByteBuf
 import net.minecraft.SharedConstants

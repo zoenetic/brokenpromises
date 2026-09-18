@@ -1,9 +1,6 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.effects.player.shiverIntensity
-import dev.zoenetic.brokenpromises.survival.units.MET
-import dev.zoenetic.brokenpromises.survival.units.average
 import net.minecraft.SharedConstants
 import net.minecraft.core.component.DataComponents
 import net.minecraft.server.level.ServerLevel

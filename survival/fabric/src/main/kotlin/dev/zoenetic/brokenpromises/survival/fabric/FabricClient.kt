@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.fabric
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.client.HEARTBEAT
+import dev.zoenetic.brokenpromises.survival.vitals.client.HEARTBEAT
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 

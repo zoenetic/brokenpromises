@@ -2,7 +2,7 @@ package dev.zoenetic.brokenpromises.survival.fabric
 
 import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.debug.*
-import dev.zoenetic.brokenpromises.survival.state.ChunkHeatSources
+import dev.zoenetic.brokenpromises.survival.emission.Emitters.rebuildEmitters
 import dev.zoenetic.brokenpromises.survival.vitals.Exertion
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -35,7 +35,7 @@ public object FabricSurvival : ModInitializer {
         }
 
         ServerChunkEvents.CHUNK_LOAD.register { _, chunk, _ ->
-            ChunkHeatSources.rebuild(chunk)
+            chunk.rebuildEmitters()
         }
 
         ServerTickEvents.END_LEVEL_TICK.register { level ->

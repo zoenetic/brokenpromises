@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.mixin;
 
-import dev.zoenetic.brokenpromises.survival.client.LightingCampfireState;
-import dev.zoenetic.brokenpromises.survival.client.ShiverState;
+import dev.zoenetic.brokenpromises.survival.fire.client.LightingCampfireState;
+import dev.zoenetic.brokenpromises.survival.vitals.client.ShiverState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

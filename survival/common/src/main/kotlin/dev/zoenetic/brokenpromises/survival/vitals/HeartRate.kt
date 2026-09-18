@@ -1,11 +1,8 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
 import com.mojang.serialization.Codec
-import dev.zoenetic.brokenpromises.survival.effects.player.SHIVER_CEASES
-import dev.zoenetic.brokenpromises.survival.units.BPM
 import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Duration
-import dev.zoenetic.brokenpromises.survival.units.MET
 import io.netty.buffer.ByteBuf
 import net.minecraft.SharedConstants
 import net.minecraft.network.codec.StreamCodec
