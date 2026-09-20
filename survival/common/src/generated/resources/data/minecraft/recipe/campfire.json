@@ -1,7 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "f": "brokenpromises:firewood"
+    "f": "unbidden:firewood"
   },
   "pattern": [
     "ff",

@@ -13,19 +13,19 @@
     "main": [
       {
         "adapter": "kotlin",
-        "value": "dev.zoenetic.brokenpromises.survival.fabric.FabricSurvival"
+        "value": "dev.zoenetic.unbidden.survival.fabric.FabricSurvival"
       }
     ],
     "client": [
       {
         "adapter": "kotlin",
-        "value": "dev.zoenetic.brokenpromises.survival.fabric.FabricClient"
+        "value": "dev.zoenetic.unbidden.survival.fabric.FabricClient"
       }
     ],
     "fabric-datagen": [
       {
         "adapter": "kotlin",
-        "value": "dev.zoenetic.brokenpromises.survival.fabric.datagen.FabricDataGenerators"
+        "value": "dev.zoenetic.unbidden.survival.fabric.datagen.FabricDataGenerators"
       }
     ]
   },

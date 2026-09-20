@@ -40,7 +40,7 @@
                   "function": "minecraft:set_count"
                 }
               ],
-              "name": "brokenpromises:firewood"
+              "name": "unbidden:firewood"
             }
           ]
         }
