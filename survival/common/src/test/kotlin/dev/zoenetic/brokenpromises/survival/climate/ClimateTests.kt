@@ -29,7 +29,7 @@ class ClimateTests {
 
     @Test
     fun `noise 0 is around 45 degree latitude`() {
-        val atZero = temperatureFromNoise(0.0).value
+        val atZero = temperatureFromNoise(0.0).celsius
         assertTrue(atZero > 10, "expected $atZero to be greater than 10")
         assertTrue(atZero < 14, "expected $atZero to be less than 14")
     }
@@ -37,7 +37,7 @@ class ClimateTests {
     @Test
     fun `the whole noise range stays between pole and equator`() {
         for (noise in listOf(-1.0, -0.5, 0.0, 0.5, 1.0)) {
-            val t = temperatureFromNoise(noise).value
+            val t = temperatureFromNoise(noise).celsius
             assertTrue(t >= POLE_C, "noise $noise gave $t, below $POLE_C")
             assertTrue(t <= EQUATOR_C, "noise $noise gave $t, above $EQUATOR_C")
         }
@@ -46,52 +46,52 @@ class ClimateTests {
     @Test
     fun `hot noise really is hot`() {
         assertTrue(
-            temperatureFromNoise(0.8).value > 25.0,
-            "a hot climate should read hot: ${temperatureFromNoise(0.8).value}"
+            temperatureFromNoise(0.8).celsius > 25.0,
+            "a hot climate should read hot: ${temperatureFromNoise(0.8).celsius}"
         )
     }
 
     @Test
     fun `adjusting for altitude has no effect at or below sea level`() {
-        val t = Celsius(0.0)
-        assertEquals(0.0, t.adjustForAltitude(Altitude(0)).value)
-        assertEquals(0.0, t.adjustForAltitude(Altitude(-100)).value)
+        val t = Heat(0.0)
+        assertEquals(0.0, t.adjustForAltitude(Altitude(0)).celsius)
+        assertEquals(0.0, t.adjustForAltitude(Altitude(-100)).celsius)
     }
 
     @Test
     fun `a null altitude leaves the temperature alone`() {
-        assertEquals(5.0, Celsius(5.0).adjustForAltitude(null).value)
+        assertEquals(5.0, Heat(5.0).adjustForAltitude(null).celsius)
     }
 
     @Test
     fun `adjusting for altitude is monotonic above sea level`() {
-        val t = Celsius(0.0)
-        val top = t.adjustForAltitude(Altitude(300)).value
-        val middle = t.adjustForAltitude(Altitude(150)).value
-        val bottom = t.adjustForAltitude(Altitude(1)).value
+        val t = Heat(0.0)
+        val top = t.adjustForAltitude(Altitude(300)).celsius
+        val middle = t.adjustForAltitude(Altitude(150)).celsius
+        val bottom = t.adjustForAltitude(Altitude(1)).celsius
         assertTrue(top < middle, "expected $top to be less than $middle")
         assertTrue(middle < bottom, "expected $middle to be less than $bottom")
     }
 
     @Test
     fun `a big spike in altitude gives a big drop in temperature`() {
-        val adjusted = Celsius(0.0).adjustForAltitude(Altitude(300)).value
+        val adjusted = Heat(0.0).adjustForAltitude(Altitude(300)).celsius
         assertTrue(adjusted > -30.0, "expected $adjusted to be greater than -30")
         assertTrue(adjusted < -10.0, "expected $adjusted to be less than -10")
     }
 
     private val dayTicks = SharedConstants.TICKS_PER_GAME_DAY.toLong()
-    private val mean = Celsius(10.0)
+    private val mean = Heat(10.0)
     private val warmest = Time(WARMEST_TICK)
 
-    private fun Celsius.atTime(t: Long, sky: Sky, humidity: Humidity) =
-        adjustForTimeOfDay(Time(t), sky, humidity).value
+    private fun Heat.atTime(t: Long, sky: Sky, humidity: Humidity) =
+        adjustForTimeOfDay(Time(t), sky, humidity).celsius
 
     @Test
     fun `the warmest tick is exactly the dry swing above the mean in dry air`() {
         assertEquals(
-            mean.value + DIURNAL_SWING_DRY,
-            mean.adjustForTimeOfDay(warmest, Sky(1.0), dry).value,
+            mean.celsius + DIURNAL_SWING_DRY,
+            mean.adjustForTimeOfDay(warmest, Sky(1.0), dry).celsius,
             1e-9
         )
     }
@@ -99,7 +99,7 @@ class ClimateTests {
     @Test
     fun `half a day after the warmest tick is exactly the dry swing below the mean`() {
         assertEquals(
-            mean.value - DIURNAL_SWING_DRY,
+            mean.celsius - DIURNAL_SWING_DRY,
             mean.atTime(WARMEST_TICK + dayTicks / 2, Sky(1.0), dry),
             1e-9
         )
@@ -120,7 +120,7 @@ class ClimateTests {
         val average = (0 until 24)
             .map { mean.atTime(it * dayTicks / 24, Sky(0.5), dry) }
             .average()
-        assertEquals(mean.value, average, 1e-9)
+        assertEquals(mean.celsius, average, 1e-9)
     }
 
     @Test
@@ -139,7 +139,7 @@ class ClimateTests {
     fun `sky openness scales the swing`() {
         for (sky in listOf(0.25, 0.5, 0.75)) {
             assertEquals(
-                mean.value + DIURNAL_SWING_DRY * sky,
+                mean.celsius + DIURNAL_SWING_DRY * sky,
                 mean.atTime(WARMEST_TICK, Sky(sky), dry),
                 1e-9,
                 "sky $sky"
@@ -150,15 +150,19 @@ class ClimateTests {
     @Test
     fun `with no sky there is no diurnal swing`() {
         for (time in listOf(0L, 6000L, WARMEST_TICK, 18000L, 21000L)) {
-            assertEquals(mean.value, mean.atTime(time, Sky(0.0), dry), 1e-9, "tick $time")
+            assertEquals(mean.celsius, mean.atTime(time, Sky(0.0), dry), 1e-9, "tick $time")
         }
     }
 
     @Test
     fun `dry air gives the dry swing and humid air the humid swing`() {
-        assertEquals(mean.value + DIURNAL_SWING_DRY, mean.atTime(WARMEST_TICK, Sky(1.0), dry), 1e-9)
         assertEquals(
-            mean.value + DIURNAL_SWING_HUMID,
+            mean.celsius + DIURNAL_SWING_DRY,
+            mean.atTime(WARMEST_TICK, Sky(1.0), dry),
+            1e-9
+        )
+        assertEquals(
+            mean.celsius + DIURNAL_SWING_HUMID,
             mean.atTime(WARMEST_TICK, Sky(1.0), humid),
             1e-9
         )
@@ -167,7 +171,7 @@ class ClimateTests {
     @Test
     fun `the swing shrinks as humidity rises`() {
         val swings = listOf(0.0, 0.25, 0.5, 0.75, 1.0)
-            .map { h -> mean.atTime(WARMEST_TICK, Sky(1.0), Humidity(h)) - mean.value }
+            .map { h -> mean.atTime(WARMEST_TICK, Sky(1.0), Humidity(h)) - mean.celsius }
         for (i in 1 until swings.size) {
             assertTrue(swings[i] < swings[i - 1], "step $i (${swings[i]}) vs ${swings[i - 1]}")
         }
@@ -179,7 +183,7 @@ class ClimateTests {
             val average = (0 until 24)
                 .map { mean.atTime(it * dayTicks / 24, Sky(1.0), Humidity(h)) }
                 .average()
-            assertEquals(mean.value, average, 1e-9, "humidity $h")
+            assertEquals(mean.celsius, average, 1e-9, "humidity $h")
         }
     }
 

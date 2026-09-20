@@ -1,12 +1,26 @@
 package dev.zoenetic.brokenpromises.survival.emission
 
-import dev.zoenetic.brokenpromises.survival.units.Power
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import net.minecraft.world.level.block.state.BlockState
 
-// called while block states are being built, so implementations must read only the state
 public interface EmittingBlock {
 
-    public fun getHeat(state: BlockState): Power
-    public fun getLight(state: BlockState): Light
+    public fun getHeat(state: BlockState): Heat
+    public val maxHeat: Heat
+        get() = TODO()
 
+    public fun getLight(state: BlockState): Light
+    public val maxLight: Light
+        get() = TODO()
+
+    public companion object {
+        public fun simple(heat: Heat, light: Light): EmittingBlock = object : EmittingBlock {
+            override fun getHeat(state: BlockState): Heat = maxHeat
+            override val maxHeat: Heat = heat
+
+            override fun getLight(state: BlockState): Light = maxLight
+            override val maxLight: Light = light
+        }
+    }
 }
+

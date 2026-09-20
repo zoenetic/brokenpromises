@@ -3,7 +3,7 @@ package dev.zoenetic.brokenpromises.survival.vitals
 import com.mojang.serialization.Codec
 import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.Survival.MOD_ID
-import dev.zoenetic.brokenpromises.survival.units.Celsius
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import io.netty.buffer.ByteBuf
 import net.minecraft.network.codec.ByteBufCodecs
 import net.minecraft.network.codec.StreamCodec
@@ -17,8 +17,8 @@ import kotlin.math.abs
 internal val SPEED_PENALTY_MAX = SpeedPenalty(0.6)
 
 internal const val SPEED_PENALTY_DEAD_ZONE = 1.0
-internal const val COLD_FULL_PENALTY_AT = 28.0
-internal const val HEAT_FULL_PENALTY_AT = 41.0
+internal val COLD_FULL_PENALTY_AT = Heat(28.0)
+internal val HEAT_FULL_PENALTY_AT = Heat(41.0)
 
 private val BODY_TEMPERATURE_SPEED_REDUCTION =
     Identifier.fromNamespaceAndPath(
@@ -30,14 +30,14 @@ private val BODY_TEMPERATURE_SPEED_REDUCTION =
 public value class SpeedPenalty(public val value: Double) {
 
     public companion object {
-        public fun forTemperature(temperature: Celsius): SpeedPenalty {
+        public fun forTemperature(temperature: Heat): SpeedPenalty {
             val deviation =
-                abs(temperature.value - NORMAL_BODY_TEMPERATURE)
+                abs(temperature.celsius - NORMAL_BODY_TEMPERATURE.celsius)
             if (deviation <= SPEED_PENALTY_DEAD_ZONE) return SpeedPenalty(0.0)
             val fullAt =
-                if (temperature.value < NORMAL_BODY_TEMPERATURE) COLD_FULL_PENALTY_AT else HEAT_FULL_PENALTY_AT
+                if (temperature < NORMAL_BODY_TEMPERATURE) COLD_FULL_PENALTY_AT else HEAT_FULL_PENALTY_AT
             val range =
-                abs(fullAt - NORMAL_BODY_TEMPERATURE) - SPEED_PENALTY_DEAD_ZONE
+                abs(fullAt.celsius - NORMAL_BODY_TEMPERATURE.celsius) - SPEED_PENALTY_DEAD_ZONE
             val progress =
                 ((deviation - SPEED_PENALTY_DEAD_ZONE) / range).coerceIn(
                     0.0,
@@ -53,7 +53,7 @@ public value class SpeedPenalty(public val value: Double) {
 
         public fun tick(player: ServerPlayer) {
             val vitals = Survival.platform.vitals.get(player) ?: return
-            val penalty = forTemperature(vitals.bodyTemperature.celsius)
+            val penalty = forTemperature(vitals.bodyTemperature.heat)
             val attribute = player.getAttribute(MOVEMENT_SPEED) ?: return
             if (penalty.value == 0.0) {
                 attribute.removeModifier(BODY_TEMPERATURE_SPEED_REDUCTION)

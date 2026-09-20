@@ -1,8 +1,8 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
 import com.mojang.serialization.Codec
-import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Duration
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import io.netty.buffer.ByteBuf
 import net.minecraft.SharedConstants
 import net.minecraft.network.codec.ByteBufCodecs
@@ -15,7 +15,7 @@ internal const val MAX_BREATHING_RATE = 50.0
 internal const val BREATHING_RATE_CURVE = 1.5
 
 internal const val BREATHS_PER_DEGREE_OF_FEVER = 3.0
-internal const val APNOEA_TEMPERATURE = 24.0
+internal val APNOEA_TEMPERATURE = Heat(24.0)
 
 internal const val BREATHING_RATE_RISES_AT = 30.0
 internal const val BREATHING_RATE_FALLS_AT = 45.0
@@ -36,21 +36,25 @@ public data class BreathingRate(
     val value: Double = RESTING_BREATHING_RATE,
 ) {
     public fun getNew(
-        bodyTemperature: Celsius,
+        bodyTemperature: Heat,
         exertion: MET,
         elapsed: Duration,
     ): BreathingRate {
         val current = value
-        val core = bodyTemperature.value
         val chill =
-            ((core - APNOEA_TEMPERATURE) / (SHIVER_CEASES - APNOEA_TEMPERATURE)).coerceIn(0.0, 1.0)
+            ((bodyTemperature - APNOEA_TEMPERATURE) / (SHIVER_CEASES - APNOEA_TEMPERATURE)).coerceIn(
+                Heat(0.0),
+                Heat(1.0)
+            )
         val fever =
-            BREATHS_PER_DEGREE_OF_FEVER * (core - NORMAL_BODY_TEMPERATURE).coerceAtLeast(0.0)
+            (bodyTemperature - NORMAL_BODY_TEMPERATURE).coerceAtLeast(
+                0.0
+            ) * BREATHS_PER_DEGREE_OF_FEVER
         val reserve = MAX_BREATHING_RATE - RESTING_BREATHING_RATE
         val exerted =
             RESTING_BREATHING_RATE + reserve * exertion.capacity(MET_MAX).coerceIn(0.0, 1.0)
                 .pow(BREATHING_RATE_CURVE)
-        val target = ((exerted + fever) * chill).coerceAtMost(MAX_BREATHING_RATE)
+        val target = (chill.celsius * (exerted + fever.celsius)).coerceAtMost(MAX_BREATHING_RATE)
         val isRising = target > current
         val halfLife = halfLife(isRising)
         val new = approach(
@@ -72,8 +76,8 @@ public data class BreathingRate(
         )
     }
 
-    public fun visibility(airTemperature: Celsius): Float {
-        val airTemp = airTemperature.value
+    public fun visibility(ambient: Heat): Float {
+        val airTemp = ambient.celsius
         if (airTemp >= BREATHING_VISIBLE_THRESHOLD) return 0F
         val range = BREATHING_VISIBLE_THRESHOLD - BREATHING_FULL_VISIBILITY_THRESHOLD
         return ((BREATHING_VISIBLE_THRESHOLD - airTemp) / range).coerceIn(0.0, 1.0).toFloat()

@@ -4,11 +4,9 @@ import dev.zoenetic.brokenpromises.survival.CommonFixtures
 import dev.zoenetic.brokenpromises.survival.CommonFixtures.coldestSite
 import dev.zoenetic.brokenpromises.survival.CommonFixtures.seaLevelCentreOf
 import dev.zoenetic.brokenpromises.survival.emission.Emitters.rebuildEmitters
-import dev.zoenetic.brokenpromises.survival.units.Celsius
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import dev.zoenetic.brokenpromises.survival.units.Sky
-import dev.zoenetic.brokenpromises.survival.units.TemperatureDifference
 import dev.zoenetic.brokenpromises.survival.units.Time
-import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.world.level.block.Blocks
 import org.junit.jupiter.api.BeforeAll
@@ -21,10 +19,10 @@ class HeatTrappingTests {
     private val open = Sky(1.0)
     private val sealed = Sky(0.0)
 
-    private val cold = Celsius(-7.5)
+    private val cold = Heat(-7.5)
 
-    private fun trapped(heat: Double, sky: Sky, ambient: Celsius = cold): Double =
-        trapHeat(TemperatureDifference(heat), sky, ambient).value
+    private fun trapped(heat: Double, sky: Sky, ambient: Heat = cold): Double =
+        trapHeat(Heat(heat), sky, ambient).celsius
 
     @Test
     fun `under an open sky a fire warms exactly as much as it radiates`() {
@@ -49,20 +47,20 @@ class HeatTrappingTests {
 
     @Test
     fun `trapping never lifts the air past the ceiling`() {
-        val ambient = Celsius(20.0)
-        val air = ambient.value + trapped(6.0, sealed, ambient)
-        assertEquals(MAX_HEATED_AIR.value, air, 1e-9)
+        val ambient = Heat(20.0)
+        val air = ambient.celsius + trapped(6.0, sealed, ambient)
+        assertEquals(MAX_HEATED_AIR.celsius, air, 1e-9)
     }
 
     @Test
     fun `below the ceiling trapping is not limited`() {
-        val ambient = Celsius(-20.0)
+        val ambient = Heat(-20.0)
         assertEquals(6.0 * (1.0 + HEAT_TRAPPING), trapped(6.0, sealed, ambient), 1e-9)
     }
 
     @Test
     fun `radiant heat is never capped, even in air already past the ceiling`() {
-        val desert = Celsius(40.0)
+        val desert = Heat(40.0)
         assertEquals(32.0, trapped(32.0, sealed, desert), 1e-9)
         assertEquals(32.0, trapped(32.0, open, desert), 1e-9)
     }
@@ -76,7 +74,7 @@ class HeatTrappingTests {
         val player = world.playerAt(standingAt)
         val time = Time(world.level.gameTime)
 
-        val cold = PlayerConditions.getNew(player, time).temperature.value
+        val cold = PlayerConditions.getNew(player, time).ambient.celsius
 
         val chunk = world.level.getChunk(
             SectionPos.blockToSectionCoord(fireAt.x),
@@ -91,7 +89,7 @@ class HeatTrappingTests {
             )
         chunk.rebuildEmitters()
 
-        val warm = PlayerConditions.getNew(player, time).temperature.value
+        val warm = PlayerConditions.getNew(player, time).ambient.celsius
         return warm - cold
     }
 

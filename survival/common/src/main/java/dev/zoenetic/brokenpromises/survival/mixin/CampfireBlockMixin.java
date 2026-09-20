@@ -50,11 +50,12 @@ public abstract class CampfireBlockMixin extends Block {
     }
 
     public @NonNull Fuel brokenpromisesfuelledblock$getFuel(@NonNull BlockState state) {
-        return null; //TODO
+        return new Fuel(state.getValue(FuelProperties.FUEL_LEVEL));
     }
 
     public @NonNull BlockState brokenpromisesfuelledblock$setFuel(@NonNull BlockState state, @NonNull Fuel fuel) {
-        return state; //TODO
+        var newValue = fuel.coerceAtMost(brokenpromisesfuelledblock$getMaxFuel());
+        return state.setValue(FuelProperties.FUEL_LEVEL, newValue.getLevel());
     }
 
     @ModifyReturnValue(method = "getStateForPlacement", at = @At("RETURN"))

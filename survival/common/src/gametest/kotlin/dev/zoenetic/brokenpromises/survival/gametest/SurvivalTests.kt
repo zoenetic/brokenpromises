@@ -4,7 +4,7 @@ import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.climate.getHumidity
 import dev.zoenetic.brokenpromises.survival.conditions.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.emission.Emitters
-import dev.zoenetic.brokenpromises.survival.units.Celsius
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import dev.zoenetic.brokenpromises.survival.units.Time
 import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_HIGH
 import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_LOW
@@ -92,30 +92,30 @@ object SurvivalTests {
 
     fun theProductionLoopDrivesBodyTemperature(helper: GameTestHelper) {
         val player = helper.playerAt(BlockPos(1, 2, 1))
-        var ambient: Celsius? = null
+        var ambient: Heat? = null
         var start: Double? = null
 
         helper.startSequence()
             .thenIdle(2)
             .thenExecute {
-                ambient = helper.sample(player).temperature
+                ambient = helper.sample(player).ambient
                 start = helper.require(Vitals.get(player), "seeded vitals")
-                    .bodyTemperature.celsius.value
+                    .bodyTemperature.heat.celsius
             }
             .thenExecuteFor(100) { /* the mod's own tick handlers do the work */ }
             .thenExecute {
                 val began = helper.require(start, "a captured starting temperature")
                 val outside = helper.require(ambient, "a captured ambient temperature")
                 val now = helper.require(Vitals.get(player), "vitals")
-                    .bodyTemperature.celsius.value
+                    .bodyTemperature.heat.celsius
                 val drift = now - began
-                val where = "ambient ${outside.value}C, body $began -> $now (drift $drift)"
+                val where = "ambient ${outside.celsius}C, body $began -> $now (drift $drift)"
                 when {
-                    outside.value < COMFORT_LOW -> if (drift >= 0.0) throw helper.assertionException(
+                    outside < COMFORT_LOW -> if (drift >= 0.0) throw helper.assertionException(
                         "below the comfort band the body should cool: $where"
                     )
 
-                    outside.value > COMFORT_HIGH -> if (drift <= 0.0) throw helper.assertionException(
+                    outside > COMFORT_HIGH -> if (drift <= 0.0) throw helper.assertionException(
                         "above the comfort band the body should warm: $where"
                     )
 

@@ -6,32 +6,32 @@ import dev.zoenetic.brokenpromises.survival.units.Time
 @JvmInline
 public value class Burnout(public val at: Time) {
 
-    public fun fuelAt(now: Time, max: Fuel, perUnit: Duration): Fuel {
+    public fun fuelAt(now: Time, max: Fuel, burnRate: Duration): Fuel {
         val ticks = at - now
         val fuel =
-            Math.ceilDiv(ticks.value, perUnit.value).coerceIn(0, max.level.toLong()).toInt()
+            Math.ceilDiv(ticks.value, burnRate.value).coerceIn(0, max.level.toLong()).toInt()
         return Fuel(fuel)
     }
 
-    public fun nextDropAt(now: Time, max: Fuel, perUnit: Duration): Time? {
-        val fuel = fuelAt(now, max, perUnit)
+    public fun nextDropAt(now: Time, max: Fuel, burnRate: Duration): Time? {
+        val fuel = fuelAt(now, max, burnRate)
         if (fuel.level == 0) return null
-        return at - perUnit * (fuel.level - 1)
+        return at - burnRate * (fuel.level - 1)
     }
 
     public fun isOut(now: Time): Boolean = now >= at
 
-    public fun refuel(added: Fuel, now: Time, max: Fuel, perUnit: Duration): Burnout {
+    public fun refuel(added: Fuel, now: Time, max: Fuel, burnRate: Duration): Burnout {
         val from = if (at > now) at else now
-        val extended = from + perUnit * added.level
-        val cap = now + perUnit * max.level
+        val extended = from + burnRate * added.level
+        val cap = now + burnRate * max.level
         return Burnout(if (extended < cap) extended else cap)
     }
 
     public companion object {
 
-        public fun start(now: Time, fuel: Fuel, perUnit: Duration): Burnout {
-            val ticksForFuel = perUnit * fuel.level
+        public fun start(now: Time, fuel: Fuel, burnRate: Duration): Burnout {
+            val ticksForFuel = burnRate * fuel.level
             return Burnout(now + ticksForFuel)
         }
 

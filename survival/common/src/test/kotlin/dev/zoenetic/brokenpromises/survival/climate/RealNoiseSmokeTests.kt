@@ -28,7 +28,7 @@ class RealNoiseSmokeTests {
 
     @Test
     fun `temperature is not the same everywhere`() {
-        val temperatures = sample.map { it.getBaseTemperature().value }
+        val temperatures = sample.map { it.getBaseTemperature().celsius }
         assertTrue(
             temperatures.distinct().size >= temperatures.size - 1,
             "real noise should give a distinct temperature almost everywhere, got $temperatures"
@@ -38,7 +38,7 @@ class RealNoiseSmokeTests {
     @Test
     fun `humidity and temperature come from different noise fields`() {
         val byHumidity = sample.sortedBy { it.getHumidity().value }.map { it.pos }
-        val byTemperature = sample.sortedBy { it.getBaseTemperature().value }.map { it.pos }
+        val byTemperature = sample.sortedBy { it.getBaseTemperature().celsius }.map { it.pos }
         assertNotEquals(
             byHumidity,
             byTemperature,

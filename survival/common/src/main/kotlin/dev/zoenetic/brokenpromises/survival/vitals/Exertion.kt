@@ -157,7 +157,7 @@ public class Exertion(
         internal val ServerPlayer.isShivering: Boolean
             get() {
                 val vitals = Survival.platform.vitals.get(this) ?: return false
-                return shiverIntensity(vitals.bodyTemperature.celsius) > 0.0
+                return shiverIntensity(vitals.bodyTemperature.heat) > 0.0
             }
 
         internal val ServerPlayer.isWalking: Boolean
