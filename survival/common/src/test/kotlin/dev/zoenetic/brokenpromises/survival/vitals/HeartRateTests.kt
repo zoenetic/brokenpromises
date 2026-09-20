@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
-import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Duration
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import net.minecraft.SharedConstants
 import kotlin.test.*
 
@@ -16,8 +16,8 @@ class HeartRateTests {
 
     private fun seconds(s: Double) = Duration((s * SharedConstants.TICKS_PER_SECOND).toLong())
 
-    private fun settled(core: Double = normal, met: Double = 1.0, from: Double = resting): Double =
-        HeartRate(BPM(from)).getNew(Celsius(core), MET(met), forever).bpm.value
+    private fun settled(core: Heat = normal, met: Double = 1.0, from: Double = resting): Double =
+        HeartRate(BPM(from)).getNew(core, MET(met), forever).bpm.value
 
     @Test
     fun `resting heart rate at normal temperature and one MET`() {
@@ -43,8 +43,8 @@ class HeartRateTests {
 
     @Test
     fun `fever adds beats and keeps adding with temperature`() {
-        val mild = settled(core = normal + 1.0)
-        val high = settled(core = normal + 3.0)
+        val mild = settled(core = normal + Heat(1.0))
+        val high = settled(core = normal + Heat(3.0))
         assertTrue(mild > resting, "mild $mild")
         assertTrue(high > mild, "high $high should exceed mild $mild")
     }
@@ -59,7 +59,7 @@ class HeartRateTests {
         val midway = (SHIVER_CEASES + ASYSTOLE_TEMPERATURE) / 2.0
         assertEquals(resting / 2.0, settled(core = midway), 1e-9)
         assertEquals(0.0, settled(core = ASYSTOLE_TEMPERATURE), 1e-9)
-        assertEquals(0.0, settled(core = ASYSTOLE_TEMPERATURE - 5.0), 1e-9)
+        assertEquals(0.0, settled(core = ASYSTOLE_TEMPERATURE - Heat(5.0)), 1e-9)
     }
 
     @Test
@@ -77,29 +77,29 @@ class HeartRateTests {
     @Test
     fun `zero elapsed leaves the heart rate unchanged`() {
         val before = HeartRate(BPM(resting))
-        val after = before.getNew(Celsius(normal), MET(MET_MAX.value), Duration(0L))
+        val after = before.getNew(normal, MET(MET_MAX.value), Duration(0L))
         assertEquals(before.bpm.value, after.bpm.value, 1e-9)
     }
 
     @Test
     fun `one rising half-life closes half the gap to the target`() {
         val after = HeartRate(BPM(resting))
-            .getNew(Celsius(normal), MET(MET_MAX.value), seconds(HEART_RATE_RISES_AT))
+            .getNew(normal, MET(MET_MAX.value), seconds(HEART_RATE_RISES_AT))
         assertEquals(resting + (max - resting) / 2.0, after.bpm.value, 1e-9)
     }
 
     @Test
     fun `one falling half-life closes half the gap to the target`() {
         val after = HeartRate(BPM(max))
-            .getNew(Celsius(normal), MET(1.0), seconds(HEART_RATE_FALLS_AT))
+            .getNew(normal, MET(1.0), seconds(HEART_RATE_FALLS_AT))
         assertEquals(max - (max - resting) / 2.0, after.bpm.value, 1e-9)
     }
 
     @Test
     fun `heart rate rises faster than it falls`() {
         val gap = max - resting
-        val up = HeartRate(BPM(resting)).getNew(Celsius(normal), MET(MET_MAX.value), oneSecond)
-        val down = HeartRate(BPM(max)).getNew(Celsius(normal), MET(1.0), oneSecond)
+        val up = HeartRate(BPM(resting)).getNew(normal, MET(MET_MAX.value), oneSecond)
+        val down = HeartRate(BPM(max)).getNew(normal, MET(1.0), oneSecond)
         val closedUp = (up.bpm.value - resting) / gap
         val closedDown = (max - down.bpm.value) / gap
         assertTrue(closedUp > closedDown, "up $closedUp should exceed down $closedDown")

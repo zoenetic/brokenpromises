@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
-import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Duration
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import net.minecraft.SharedConstants
 import kotlin.math.pow
 import kotlin.test.*
@@ -17,10 +17,10 @@ class BreathingRateTests {
 
     private fun seconds(s: Double) = Duration((s * SharedConstants.TICKS_PER_SECOND).toLong())
 
-    private fun settled(core: Double = normal, met: Double = 1.0, from: Double = resting): Double =
-        BreathingRate(from).getNew(Celsius(core), MET(met), forever).value
+    private fun settled(core: Heat = normal, met: Double = 1.0, from: Double = resting): Double =
+        BreathingRate(from).getNew(core, MET(met), forever).value
 
-    private fun visibility(air: Double): Float = BreathingRate(resting).visibility(Celsius(air))
+    private fun visibility(air: Double): Float = BreathingRate(resting).visibility(Heat(air))
 
     @Test
     fun `resting breathing rate at normal temperature and one MET`() {
@@ -54,7 +54,7 @@ class BreathingRateTests {
     fun `fever adds a fixed number of breaths per degree`() {
         assertEquals(
             resting + 2.0 * BREATHS_PER_DEGREE_OF_FEVER,
-            settled(core = normal + 2.0),
+            settled(core = normal + Heat(2.0)),
             1e-9
         )
     }
@@ -69,33 +69,33 @@ class BreathingRateTests {
         val midway = (SHIVER_CEASES + APNOEA_TEMPERATURE) / 2.0
         assertEquals(resting / 2.0, settled(core = midway), 1e-9)
         assertEquals(0.0, settled(core = APNOEA_TEMPERATURE), 1e-9)
-        assertEquals(0.0, settled(core = APNOEA_TEMPERATURE - 5.0), 1e-9)
+        assertEquals(0.0, settled(core = APNOEA_TEMPERATURE - Heat(5.0)), 1e-9)
     }
 
     @Test
     fun `never exceeds max breathing rate`() {
-        assertEquals(max, settled(core = normal + 10.0, met = MET_MAX.value), 1e-9)
+        assertEquals(max, settled(core = normal + Heat(10.0), met = MET_MAX.value), 1e-9)
     }
 
     @Test
     fun `one rising half-life closes half the gap to the target`() {
         val after = BreathingRate(resting)
-            .getNew(Celsius(normal), MET(MET_MAX.value), seconds(BREATHING_RATE_RISES_AT))
+            .getNew(normal, MET(MET_MAX.value), seconds(BREATHING_RATE_RISES_AT))
         assertEquals(resting + (max - resting) / 2.0, after.value, 1e-9)
     }
 
     @Test
     fun `one falling half-life closes half the gap to the target`() {
         val after = BreathingRate(max)
-            .getNew(Celsius(normal), MET(1.0), seconds(BREATHING_RATE_FALLS_AT))
+            .getNew(normal, MET(1.0), seconds(BREATHING_RATE_FALLS_AT))
         assertEquals(max - (max - resting) / 2.0, after.value, 1e-9)
     }
 
     @Test
     fun `breathing rate rises faster than it falls`() {
         val gap = max - resting
-        val up = BreathingRate(resting).getNew(Celsius(normal), MET(MET_MAX.value), oneSecond)
-        val down = BreathingRate(max).getNew(Celsius(normal), MET(1.0), oneSecond)
+        val up = BreathingRate(resting).getNew(normal, MET(MET_MAX.value), oneSecond)
+        val down = BreathingRate(max).getNew(normal, MET(1.0), oneSecond)
         val closedUp = (up.value - resting) / gap
         val closedDown = (max - down.value) / gap
         assertTrue(closedUp > closedDown, "up $closedUp should exceed down $closedDown")

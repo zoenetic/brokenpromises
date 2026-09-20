@@ -1,7 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.units.Celsius
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import dev.zoenetic.brokenpromises.survival.units.Humidity
 import dev.zoenetic.brokenpromises.survival.units.Time
 import net.minecraft.core.particles.ParticleTypes
@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import java.util.*
 
-public val BREATH_VISIBLE_BELOW: Celsius = Celsius(8.0)
+public val BREATH_VISIBLE_BELOW: Heat = Heat(8.0)
 public val HUMIDITY_TO_BUMP_BREATH_VISIBLE_AT: Humidity = Humidity(0.5)
 
 public class BreathParticles() {
@@ -18,7 +18,7 @@ public class BreathParticles() {
 
         internal val cache: HashMap<UUID, Time> = HashMap()
 
-        internal fun emitBreathParticle(player: ServerPlayer, temperature: Celsius) {
+        internal fun emitBreathParticle(player: ServerPlayer, temperature: Heat) {
             if (temperature < BREATH_VISIBLE_BELOW) {
                 val eye = player.eyePosition
                 val look = player.getViewVector(1.0f)
@@ -47,7 +47,7 @@ public class BreathParticles() {
             val last = cache.getOrPut(player.uuid) { gameTime }
             val elapsed = gameTime - last
             if (elapsed < interval) return
-            emitBreathParticle(player, conditions.temperature)
+            emitBreathParticle(player, conditions.ambient)
             cache[player.uuid] = gameTime
         }
     }

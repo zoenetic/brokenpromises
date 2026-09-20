@@ -4,7 +4,6 @@ import dev.zoenetic.brokenpromises.survival.Survival
 import dev.zoenetic.brokenpromises.survival.climate.getHumidity
 import dev.zoenetic.brokenpromises.survival.conditions.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.emission.Emitters
-import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Time
 import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_HIGH
 import dev.zoenetic.brokenpromises.survival.vitals.COMFORT_LOW

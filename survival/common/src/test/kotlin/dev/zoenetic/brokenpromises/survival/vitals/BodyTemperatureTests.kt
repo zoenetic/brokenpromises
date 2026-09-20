@@ -13,29 +13,41 @@ import kotlin.test.assertTrue
 
 class BodyTemperatureTests {
 
-    private fun c(v: Double) = Celsius(v)
+    private fun h(v: Double) = Heat(v)
     private fun d(v: Long) = Duration(v)
+
+    private fun assertEquals(expected: Heat, actual: Heat, absoluteTolerance: Double) {
+        assertEquals(expected.celsius, actual.celsius, absoluteTolerance)
+    }
 
     @Test
     fun `approach returns current exactly for 0 elapsed ticks`() {
-        val low = 30.0
-        assertEquals(low, approach(low, 28.0, d(0), BODY_COOLS_AT))
-        val high = 44.0
-        assertEquals(high, approach(high, 46.0, d(0), BODY_WARMS_AT))
+        val low = h(30.0)
+        assertEquals(low, approach(low, Heat(28.0), d(0), BODY_COOLS_AT))
+        val high = h(44.0)
+        assertEquals(high, approach(high, Heat(46.0), d(0), BODY_WARMS_AT))
     }
 
     @Test
     fun `one half-life closes exactly half the gap`() {
         val oneSecond = 1.0
-        assertEquals(28.5, approach(30.0, 27.0, d(20), oneSecond), 1e-9)
-        assertEquals(45.5, approach(44.0, 47.0, d(20), oneSecond), 1e-9)
+        assertEquals(
+            28.5, approach(
+                h(30.0), h(27.0), d(20), oneSecond
+            ).celsius, 1e-9
+        )
+        assertEquals(
+            45.5, approach(
+                h(44.0), h(47.0), d(20), oneSecond
+            ).celsius, 1e-9
+        )
     }
 
     @Test
     fun `approach never overshoots when warming`() {
         val current = NORMAL_BODY_TEMPERATURE
         for (gap in 1..10) {
-            val target = current + gap.toDouble()
+            val target = current + h(gap.toDouble())
             for (elapsed in listOf(1L, 20L, 100_000L)) {
                 val new = approach(current, target, d(elapsed), BODY_WARMS_AT)
                 assertTrue(
@@ -50,7 +62,7 @@ class BodyTemperatureTests {
     fun `approach never overshoots when cooling`() {
         val current = NORMAL_BODY_TEMPERATURE
         for (gap in 1..10) {
-            val target = current - gap.toDouble()
+            val target = current - h(gap.toDouble())
             for (elapsed in listOf(1L, 20L, 100_000L)) {
                 val new = approach(current, target, d(elapsed), BODY_COOLS_AT)
                 assertTrue(
@@ -63,7 +75,7 @@ class BodyTemperatureTests {
 
     @Test
     fun `approach composes, 40 ticks equals 2 x 20 ticks`() {
-        val target = NORMAL_BODY_TEMPERATURE + 3.0
+        val target = NORMAL_BODY_TEMPERATURE + h(3.0)
         val afterForty = approach(NORMAL_BODY_TEMPERATURE, target, d(40), BODY_WARMS_AT)
         val afterFirstTwenty = approach(NORMAL_BODY_TEMPERATURE, target, d(20), BODY_WARMS_AT)
         val afterSecondTwenty = approach(afterFirstTwenty, target, d(20), BODY_WARMS_AT)
@@ -72,7 +84,7 @@ class BodyTemperatureTests {
 
     @Test
     fun `one tick at a time equals one step of twenty ticks`() {
-        val target = NORMAL_BODY_TEMPERATURE - 8.0
+        val target = NORMAL_BODY_TEMPERATURE - h(8.0)
         var stepwise = NORMAL_BODY_TEMPERATURE
         repeat(20) { stepwise = approach(stepwise, target, d(1), BODY_COOLS_AT) }
         val oneGo = approach(NORMAL_BODY_TEMPERATURE, target, d(20), BODY_COOLS_AT)
@@ -81,7 +93,7 @@ class BodyTemperatureTests {
 
     @Test
     fun `a single tick actually moves the body temperature`() {
-        val target = NORMAL_BODY_TEMPERATURE - 20.0
+        val target = NORMAL_BODY_TEMPERATURE - h(20.0)
         val after = approach(NORMAL_BODY_TEMPERATURE, target, d(1), BODY_COOLS_AT)
         assertTrue(
             after < NORMAL_BODY_TEMPERATURE,
@@ -91,7 +103,7 @@ class BodyTemperatureTests {
 
     @Test
     fun `if current == target, approach returns current`() {
-        val current = 24.0
+        val current = h(24.0)
         assertEquals(current, approach(current, current, d(1), BODY_WARMS_AT))
         assertEquals(current, approach(current, current, d(1), BODY_COOLS_AT))
     }
@@ -139,8 +151,8 @@ class BodyTemperatureTests {
 
     @Test
     fun `target is normal anywhere inside the comfort band`() {
-        for (ambient in listOf(COMFORT_LOW, 22.0, 25.0, 28.0, COMFORT_HIGH)) {
-            assertEquals(c(NORMAL_BODY_TEMPERATURE), target(c(ambient)), "ambient $ambient")
+        for (ambient in listOf(COMFORT_LOW, h(22.0), h(25.0), h(28.0), COMFORT_HIGH)) {
+            assertEquals(NORMAL_BODY_TEMPERATURE, target(ambient), "ambient $ambient")
         }
     }
 
@@ -148,29 +160,29 @@ class BodyTemperatureTests {
     fun `target is continuous at both band edges`() {
         val epsilon = 1e-6
         assertEquals(
-            target(c(COMFORT_LOW)).value,
-            target(c(COMFORT_LOW - epsilon)).value,
+            target(COMFORT_LOW),
+            target(h(COMFORT_LOW.celsius - epsilon)),
             1e-3
         )
         assertEquals(
-            target(c(COMFORT_HIGH)).value,
-            target(c(COMFORT_HIGH + epsilon)).value,
+            target(COMFORT_HIGH),
+            target(h(COMFORT_HIGH.celsius + epsilon)),
             1e-3
         )
     }
 
     @Test
     fun `target moves with ambient outside the band, but by less than ambient does`() {
-        val coldDrop = NORMAL_BODY_TEMPERATURE - target(c(0.0)).value
-        assertTrue(coldDrop > 0.0 && coldDrop < COMFORT_LOW, "cold drop $coldDrop")
-        val heatRise = target(c(60.0)).value - NORMAL_BODY_TEMPERATURE
-        assertTrue(heatRise > 0.0 && heatRise < 60.0 - COMFORT_HIGH, "heat rise $heatRise")
+        val coldDrop = NORMAL_BODY_TEMPERATURE - target(h(0.0))
+        assertTrue(coldDrop > h(0.0) && coldDrop < COMFORT_LOW, "cold drop $coldDrop")
+        val heatRise = target(h(60.0)) - NORMAL_BODY_TEMPERATURE
+        assertTrue(heatRise > h(0.0) && heatRise < h(60.0) - COMFORT_HIGH, "heat rise $heatRise")
     }
 
     @Test
     fun `cold leaks through to the core more than heat does`() {
-        val coldDrop = NORMAL_BODY_TEMPERATURE - target(c(COMFORT_LOW - 10.0)).value
-        val heatRise = target(c(COMFORT_HIGH + 10.0)).value - NORMAL_BODY_TEMPERATURE
+        val coldDrop = NORMAL_BODY_TEMPERATURE - target(h(COMFORT_LOW.celsius - 10.0))
+        val heatRise = target(h(COMFORT_HIGH.celsius + 10.0)) - NORMAL_BODY_TEMPERATURE
         assertTrue(coldDrop > heatRise)
     }
 
@@ -223,33 +235,44 @@ class BodyTemperatureTests {
 
     @Test
     fun `no insulation leaves target and half life unchanged`() {
-        assertEquals(target(c(0.0)), target(c(0.0), Insulation.NONE))
-        assertEquals(halfLife(isWarming = false), halfLife(isWarming = false, insulation = Insulation.NONE))
+        assertEquals(target(h(0.0)), target(h(0.0), Insulation.NONE))
+        assertEquals(
+            halfLife(isWarming = false),
+            halfLife(isWarming = false, insulation = Insulation.NONE)
+        )
     }
 
     @Test
     fun `insulation divides the cold drop of the target`() {
-        val naked = NORMAL_BODY_TEMPERATURE - target(c(0.0)).value
-        val wrapped = NORMAL_BODY_TEMPERATURE - target(c(0.0), Insulation(2.0)).value
+        val naked = NORMAL_BODY_TEMPERATURE - target(h(0.0))
+        val wrapped = NORMAL_BODY_TEMPERATURE - target(h(0.0), Insulation(2.0))
         assertEquals(naked / 2.0, wrapped, 1e-9)
     }
 
     @Test
     fun `insulation multiplies the heat rise of the target`() {
-        val naked = target(c(45.0)).value - NORMAL_BODY_TEMPERATURE
-        val wrapped = target(c(45.0), Insulation(2.0)).value - NORMAL_BODY_TEMPERATURE
+        val naked = target(h(45.0)) - NORMAL_BODY_TEMPERATURE
+        val wrapped = target(h(45.0), Insulation(2.0)) - NORMAL_BODY_TEMPERATURE
         assertEquals(naked * 2.0, wrapped, 1e-9)
     }
 
     @Test
     fun `insulation does nothing inside the comfort band`() {
-        assertEquals(c(NORMAL_BODY_TEMPERATURE), target(c(25.0), Insulation(3.0)))
+        assertEquals(NORMAL_BODY_TEMPERATURE, target(h(25.0), Insulation(3.0)))
     }
 
     @Test
     fun `insulation lengthens the half life in both directions`() {
-        assertEquals(BODY_COOLS_AT * 2.0, halfLife(isWarming = false, insulation = Insulation(2.0)), 1e-9)
-        assertEquals(BODY_WARMS_AT * 2.0, halfLife(isWarming = true, insulation = Insulation(2.0)), 1e-9)
+        assertEquals(
+            BODY_COOLS_AT * 2.0,
+            halfLife(isWarming = false, insulation = Insulation(2.0)),
+            1e-9
+        )
+        assertEquals(
+            BODY_WARMS_AT * 2.0,
+            halfLife(isWarming = true, insulation = Insulation(2.0)),
+            1e-9
+        )
     }
 
     @Test

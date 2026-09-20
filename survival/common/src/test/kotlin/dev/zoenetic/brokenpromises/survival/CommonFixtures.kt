@@ -3,7 +3,7 @@ package dev.zoenetic.brokenpromises.survival
 import dev.zoenetic.brokenpromises.survival.climate.temperatureFromNoise
 import dev.zoenetic.brokenpromises.survival.conditions.PlayerConditions
 import dev.zoenetic.brokenpromises.survival.platform.*
-import dev.zoenetic.brokenpromises.survival.units.Celsius
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import dev.zoenetic.brokenpromises.survival.vitals.Vitals
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.SharedConstants
@@ -195,7 +195,7 @@ object CommonFixtures {
     fun climateChunk(pos: ChunkPos, level: ServerLevel = climateLevel()): LevelChunk =
         LevelChunk(level, pos)
 
-    data class ClimateSite(val pos: ChunkPos, val noise: Double, val temperature: Celsius)
+    data class ClimateSite(val pos: ChunkPos, val noise: Double, val temperature: Heat)
 
     private fun temperatureNoiseAt(pos: ChunkPos): Double =
         randomState.sampler().temperature().compute(
@@ -218,8 +218,8 @@ object CommonFixtures {
         sites
     }
 
-    val hottestSite: ClimateSite by lazy { climateScan.maxBy { it.temperature.value } }
-    val coldestSite: ClimateSite by lazy { climateScan.minBy { it.temperature.value } }
+    val hottestSite: ClimateSite by lazy { climateScan.maxBy { it.temperature } }
+    val coldestSite: ClimateSite by lazy { climateScan.minBy { it.temperature } }
 
     private val biomeSource: MultiNoiseBiomeSource by lazy {
         MultiNoiseBiomeSource.createFromPreset(

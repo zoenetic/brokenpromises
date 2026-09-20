@@ -47,12 +47,12 @@ public data class Vitals(
                 elapsed
             )
             val breathingRate = previous.breathingRate.getNew(
-                bodyTemperature.celsius,
+                bodyTemperature.heat,
                 exertion,
                 elapsed
             )
             val heartRate = previous.heartRate.getNew(
-                bodyTemperature.celsius,
+                bodyTemperature.heat,
                 exertion,
                 elapsed,
             )

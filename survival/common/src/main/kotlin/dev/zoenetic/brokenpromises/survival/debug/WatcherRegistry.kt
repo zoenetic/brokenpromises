@@ -48,11 +48,11 @@ public object WatcherRegistry {
                     val chunkWind = level.getChunkAt(player.blockPosition()).getWind()
                     player.sendSystemMessage(
                         Component.literal(
-                            "FL${"%.1f".format(conditions.feelsLike().value)}" +
-                                    " A${"%.1f".format(conditions.temperature.value)}" +
-                                    " H${"%.1f".format(conditions.heat.value)}/${
+                            "FL${"%.1f".format(conditions.feelsLike().celsius)}" +
+                                    " A${"%.1f".format(conditions.ambient.celsius)}" +
+                                    " H${"%.1f".format(conditions.radiant.celsius)}/${
                                         "%.1f".format(
-                                            radiant.value
+                                            radiant
                                         )
                                     }" +
                                     " W${"%.1f".format(conditions.wind.speed)}/${
@@ -63,7 +63,7 @@ public object WatcherRegistry {
                                     " X${"%.2f".format(conditions.windExposure)}" +
                                     " RH${"%.2f".format(conditions.humidity.value)}" +
                                     " S${"%.1f".format(conditions.sky.value)}${if (conditions.isUnderOpenSky) "o" else "c"}" +
-                                    " | B${"%.1f".format(vitals.bodyTemperature.celsius.value)}" +
+                                    " | B${"%.1f".format(vitals.bodyTemperature.heat)}" +
                                     " R${"%.0f".format(vitals.breathingRate.value)}" +
                                     " P${"%.0f".format(vitals.heartRate.bpm.value)}" +
                                     " V${"%.0f".format(speed * 100)}" +

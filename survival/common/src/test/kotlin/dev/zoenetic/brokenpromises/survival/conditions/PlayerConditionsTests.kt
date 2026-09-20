@@ -45,11 +45,11 @@ class PlayerConditionsTests {
         val world = CommonFixtures.fakeWorld()
         val conditions = world.sampleAt(seaLevelCentreOf(hottestSite.pos))
         assertEquals(
-            hottestSite.temperature.value,
-            conditions.temperature.value,
+            hottestSite.temperature.celsius,
+            conditions.ambient.celsius,
             1e-9,
             "player is in ${hottestSite.pos}, which the scan puts at " +
-                    "${hottestSite.temperature.value}°C"
+                    "${hottestSite.temperature.celsius}°C"
         )
     }
 
@@ -57,8 +57,8 @@ class PlayerConditionsTests {
     fun `standing somewhere hot reads hot`() {
         val conditions = CommonFixtures.fakeWorld().sampleAt(seaLevelCentreOf(hottestSite.pos))
         assertTrue(
-            conditions.temperature.value > 25.0,
-            "the hottest column in the world read ${conditions.temperature.value}°C"
+            conditions.ambient.celsius > 25.0,
+            "the hottest column in the world read ${conditions.ambient.celsius}°C"
         )
     }
 
@@ -66,8 +66,8 @@ class PlayerConditionsTests {
     fun `standing somewhere cold reads cold`() {
         val conditions = CommonFixtures.fakeWorld().sampleAt(seaLevelCentreOf(coldestSite.pos))
         assertTrue(
-            conditions.temperature.value < 5.0,
-            "the coldest column in the world read ${conditions.temperature.value}°C"
+            conditions.ambient.celsius < 5.0,
+            "the coldest column in the world read ${conditions.ambient.celsius}°C"
         )
     }
 
@@ -77,8 +77,8 @@ class PlayerConditionsTests {
         val hot = world.sampleAt(seaLevelCentreOf(hottestSite.pos))
         val cold = world.sampleAt(seaLevelCentreOf(coldestSite.pos))
         assertTrue(
-            hot.temperature.value > cold.temperature.value,
-            "hot ${hot.temperature.value}°C should exceed cold ${cold.temperature.value}°C"
+            hot.ambient.celsius > cold.ambient.celsius,
+            "hot ${hot.ambient.celsius}°C should exceed cold ${cold.ambient.celsius}°C"
         )
     }
 
@@ -89,9 +89,9 @@ class PlayerConditionsTests {
         val atGround = world.sampleAt(ground)
         val onAPeak = world.sampleAt(ground.above(200))
         assertTrue(
-            onAPeak.temperature.value < atGround.temperature.value,
-            "200 blocks up read ${onAPeak.temperature.value}°C " +
-                    "against ${atGround.temperature.value}°C at sea level"
+            onAPeak.ambient.celsius < atGround.ambient.celsius,
+            "200 blocks up read ${onAPeak.ambient.celsius}°C " +
+                    "against ${atGround.ambient.celsius}°C at sea level"
         )
     }
 
@@ -101,8 +101,8 @@ class PlayerConditionsTests {
         val sealed = CommonFixtures.fakeWorld(skyBrightness = 0, clockTime = 9000L)
         val open = CommonFixtures.fakeWorld(skyBrightness = 15, clockTime = 9000L)
         assertNotEquals(
-            sealed.sampleAt(pos).temperature.value,
-            open.sampleAt(pos).temperature.value,
+            sealed.sampleAt(pos).ambient.celsius,
+            open.sampleAt(pos).ambient.celsius,
             "sky brightness should feed the diurnal swing"
         )
     }
@@ -117,7 +117,7 @@ class PlayerConditionsTests {
             skyBrightness = 15, gameTime = 500_000L, clockTime = 21000L
         )
         assertTrue(
-            warmest.sampleAt(pos).temperature.value > coldest.sampleAt(pos).temperature.value,
+            warmest.sampleAt(pos).ambient.celsius > coldest.sampleAt(pos).ambient.celsius,
             "mid-afternoon should beat pre-dawn even at the same game time"
         )
     }

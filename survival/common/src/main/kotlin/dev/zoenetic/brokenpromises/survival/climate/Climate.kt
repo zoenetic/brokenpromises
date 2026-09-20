@@ -37,14 +37,14 @@ public fun LevelChunk.getHumidity(): Humidity {
     )
 }
 
-public fun LevelChunk.getTemperature(): Celsius = getBaseTemperature()
+public fun LevelChunk.getTemperature(): Heat = getBaseTemperature()
 
 public fun LevelChunk.getTemperature(
     altitude: Altitude? = null,
     humidity: Humidity,
     sky: Sky,
     time: Time,
-): Celsius {
+): Heat {
     return getBaseTemperature()
         .adjustForAltitude(altitude)
         .adjustForTimeOfDay(time, sky, humidity)
@@ -69,35 +69,35 @@ private fun LevelChunk.compute(function: DensityFunction): Double {
     return function.compute(context)
 }
 
-internal fun LevelChunk.getBaseTemperature(): Celsius {
+internal fun LevelChunk.getBaseTemperature(): Heat {
     val level = level as ServerLevel
     val function = level.chunkSource.randomState().sampler().temperature
     return temperatureFromNoise(compute(function))
 }
 
-internal fun temperatureFromNoise(noise: Double): Celsius {
+internal fun temperatureFromNoise(noise: Double): Heat {
     val latitude = (PI / 4.0) * (1.0 - noise.coerceIn(-1.0, 1.0))
-    return Celsius(POLE_C + (EQUATOR_C - POLE_C) * cos(latitude).pow(LATITUDE_FALLOFF))
+    return Heat(POLE_C + (EQUATOR_C - POLE_C) * cos(latitude).pow(LATITUDE_FALLOFF))
 }
 
-internal fun Celsius.adjustForAltitude(
+internal fun Heat.adjustForAltitude(
     altitude: Altitude? = null,
-): Celsius {
+): Heat {
     if (altitude == null) return this
     val t = if (altitude.value > 0) {
-        value - (altitude.value * LAPSE_RATE_PER_BLOCK)
+        celsius - (altitude.value * LAPSE_RATE_PER_BLOCK)
     } else {
-        value
+        celsius
     }
-    return Celsius(t)
+    return Heat(t)
 }
 
-internal fun Celsius.adjustForTimeOfDay(
+internal fun Heat.adjustForTimeOfDay(
     time: Time,
     sky: Sky,
     humidity: Humidity
-): Celsius {
+): Heat {
     val dayFraction = (time.value - WARMEST_TICK).toDouble() / SharedConstants.TICKS_PER_GAME_DAY
     val swing = Mth.lerp(humidity.value, DIURNAL_SWING_DRY, DIURNAL_SWING_HUMID) * sky.value
-    return Celsius(value + swing * cos(2.0 * PI * dayFraction))
+    return Heat(celsius + swing * cos(2.0 * PI * dayFraction))
 }

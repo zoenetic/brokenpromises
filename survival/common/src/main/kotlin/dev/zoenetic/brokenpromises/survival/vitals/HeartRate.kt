@@ -1,8 +1,8 @@
 package dev.zoenetic.brokenpromises.survival.vitals
 
 import com.mojang.serialization.Codec
-import dev.zoenetic.brokenpromises.survival.units.Celsius
 import dev.zoenetic.brokenpromises.survival.units.Duration
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import io.netty.buffer.ByteBuf
 import net.minecraft.SharedConstants
 import net.minecraft.network.codec.StreamCodec
@@ -11,8 +11,8 @@ import kotlin.math.pow
 internal val RESTING_HEART_RATE = BPM(75.0)
 internal val MAX_HEART_RATE = BPM(200.0)
 
-internal const val ASYSTOLE_TEMPERATURE = 22.0
-internal const val ARRHYTHMIA_TEMPERATURE = 44.0
+internal val ASYSTOLE_TEMPERATURE = Heat(22.0)
+internal val ARRHYTHMIA_TEMPERATURE = Heat(44.0)
 
 internal const val LOW_BPM_AUDIBLE_THRESHOLD = 60.0
 internal const val LOW_BPM_FULL_VOLUME_THRESHOLD = 40.0
@@ -33,26 +33,25 @@ public data class HeartRate(
     val bpm: BPM = BPM(75.0)
 ) {
     public fun getNew(
-        bodyTemperature: Celsius,
+        bodyTemperature: Heat,
         exertion: MET,
         elapsed: Duration
     ): HeartRate {
         val current = bpm.value
-        val core = bodyTemperature.value
         val chill =
-            ((core - ASYSTOLE_TEMPERATURE) / (SHIVER_CEASES - ASYSTOLE_TEMPERATURE)).coerceIn(
-                0.0,
-                1.0
+            ((bodyTemperature - ASYSTOLE_TEMPERATURE) / (SHIVER_CEASES - ASYSTOLE_TEMPERATURE)).coerceIn(
+                Heat(0.0),
+                Heat(1.0)
             )
         val heatDelta =
-            10 * (core - NORMAL_BODY_TEMPERATURE).coerceIn(
-                0.0,
+            10 * (bodyTemperature - NORMAL_BODY_TEMPERATURE).coerceIn(
+                Heat(0.0),
                 ARRHYTHMIA_TEMPERATURE - NORMAL_BODY_TEMPERATURE
-            ).pow(1.3)
+            ).celsius.pow(1.3)
         val reserve = MAX_HEART_RATE - RESTING_HEART_RATE
         val exerted = RESTING_HEART_RATE + reserve * exertion.capacity(MET_MAX)
         val target =
-            ((exerted + heatDelta) * chill).value.coerceAtMost(MAX_HEART_RATE.value)
+            ((exerted + heatDelta) * chill.celsius).value.coerceAtMost(MAX_HEART_RATE.value)
         val isRising = target > current
         val halfLife = halfLife(isRising)
         val new = approach(

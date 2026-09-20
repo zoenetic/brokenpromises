@@ -1,8 +1,7 @@
 package dev.zoenetic.brokenpromises.survival.emission
 
 import dev.zoenetic.brokenpromises.survival.Survival
-import dev.zoenetic.brokenpromises.survival.units.Power
-import dev.zoenetic.brokenpromises.survival.units.TemperatureDifference
+import dev.zoenetic.brokenpromises.survival.units.Heat
 import net.minecraft.core.BlockPos
 import net.minecraft.core.SectionPos
 import net.minecraft.core.registries.Registries
@@ -11,12 +10,10 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.tags.TagKey
 import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.phys.Vec3
-import kotlin.math.ceil
 import kotlin.math.sqrt
 
 public val EMITTERS: TagKey<Block> = TagKey.create(
@@ -24,32 +21,15 @@ public val EMITTERS: TagKey<Block> = TagKey.create(
     Identifier.fromNamespaceAndPath(Survival.NAMESPACE, "emitters")
 )
 
-// vanilla blocks can't implement EmittingBlock, so their heat lives here
-internal val VANILLA_HEAT: Map<Block, Power> by lazy {
-    mapOf(
-        Blocks.CAMPFIRE to Power(30.0),
-        Blocks.CANDLE to Power(0.5),
-        Blocks.FIRE to Power(40.0),
-        Blocks.FURNACE to Power(20.0),
-        Blocks.LAVA to Power(100.0),
-        Blocks.MAGMA_BLOCK to Power(20.0),
-        Blocks.TORCH to Power(3.0),
-        Blocks.WALL_TORCH to Power(3.0),
-    )
-}
-
-internal val MIN_HEAT_CONTRIBUTION = TemperatureDifference(0.1)
+internal val MIN_HEAT_CONTRIBUTION = Heat(0.1)
 
 public object Emitters {
 
     internal const val EMISSION_SOFTENING = 1.0
     internal const val LIGHT_RADIUS: Int = 15
 
-    // past this, even the hottest source adds less than MIN_HEAT_CONTRIBUTION
-    internal val HEAT_RADIUS: Int by lazy {
-        val maxPower = VANILLA_HEAT.values.maxOf { it.value }
-        ceil(sqrt(maxPower / MIN_HEAT_CONTRIBUTION.value)).toInt()
-    }
+    internal val HEAT_RADIUS: Int
+        get() = VANILLA_EMITTERS.values.maxOf { sqrt(it.maxHeat.celsius / MIN_HEAT_CONTRIBUTION.celsius).toInt() }
 
     internal fun at(level: ServerLevel, pos: BlockPos, radius: Int): List<BlockPos> {
         val minPos = getMinPos(level, pos, radius)
@@ -90,12 +70,12 @@ public object Emitters {
         return BlockPos(pos.x - radius, minY, pos.z - radius)
     }
 
-    public fun heatAtPlayer(player: ServerPlayer): TemperatureDifference {
+    public fun heatAtPlayer(player: ServerPlayer): Heat {
         val bodyPos = player.boundingBox.center
         val blockPos = player.blockPosition()
         val level = player.level()
         val emitters = at(level, blockPos, HEAT_RADIUS)
-        var total = TemperatureDifference(0.0)
+        var total = Heat(0.0)
         for (pos in emitters) {
             val state = level.getBlockState(pos)
             if (!state.isLit()) continue
@@ -105,23 +85,22 @@ public object Emitters {
         return total
     }
 
-    internal fun heatFrom(body: Vec3, source: BlockPos, power: Power): TemperatureDifference {
+    internal fun heatFrom(body: Vec3, source: BlockPos, heat: Heat): Heat {
         val distanceSq = body.distanceToSqr(Vec3.atCenterOf(source))
-        return TemperatureDifference(power.value / (distanceSq + EMISSION_SOFTENING))
+        return Heat(heat.celsius / (distanceSq + EMISSION_SOFTENING))
     }
 
     public fun BlockState.isEmittingBlock(): Boolean {
-        return block is EmittingBlock || block in VANILLA_HEAT
+        return block is EmittingBlock
     }
 
     public fun BlockState.isLit(): Boolean {
         return getValueOrElse(BlockStateProperties.LIT, true)
     }
 
-    internal fun BlockState.heat(): Power? {
+    internal fun BlockState.heat(): Heat? {
         val block = block
-        if (block is EmittingBlock) return block.getHeat(this)
-        return VANILLA_HEAT[block]
+        return if (block is EmittingBlock) block.getHeat(this) else null
     }
 
     // mixin hook: vanilla caches each state's light level when the state is built

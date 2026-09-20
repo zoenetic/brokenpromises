@@ -17,9 +17,9 @@ class RealClimateTests {
     fun `the world contains somewhere genuinely hot`() {
         val hottest = hottestSite
         assertTrue(
-            hottest.temperature.value > 25.0,
+            hottest.temperature.celsius > 25.0,
             "hottest column within ${CommonFixtures.SCAN_RADIUS_CHUNKS} chunks was " +
-                    "${hottest.pos} at ${hottest.temperature.value}°C"
+                    "${hottest.pos} at ${hottest.temperature.celsius}°C"
         )
     }
 
@@ -27,22 +27,22 @@ class RealClimateTests {
     fun `the world contains somewhere genuinely cold`() {
         val coldest = coldestSite
         assertTrue(
-            coldest.temperature.value < 5.0,
+            coldest.temperature.celsius < 5.0,
             "coldest column within ${CommonFixtures.SCAN_RADIUS_CHUNKS} chunks was " +
-                    "${coldest.pos} at ${coldest.temperature.value}°C"
+                    "${coldest.pos} at ${coldest.temperature.celsius}°C"
         )
     }
 
     @Test
     fun `hot and cold are far enough apart to be worth modelling`() {
-        val spread = hottestSite.temperature.value - coldestSite.temperature.value
+        val spread = hottestSite.temperature.celsius - coldestSite.temperature.celsius
         assertTrue(spread > 20.0, "temperature spread across the scan was only $spread°C")
     }
 
     @Test
     fun `every scanned column stays inside the pole to equator band`() {
         val outside = climateScan.filter {
-            it.temperature.value !in POLE_C..EQUATOR_C
+            it.temperature.celsius !in POLE_C..EQUATOR_C
         }
         assertTrue(outside.isEmpty(), "columns outside [$POLE_C, $EQUATOR_C]: ${outside.take(3)}")
     }
@@ -57,8 +57,8 @@ class RealClimateTests {
         )
         assertNotNull(desert, "no desert or badlands within the scan radius for this seed")
         assertTrue(
-            desert.temperature.value > 20.0,
-            "vanilla calls ${desert.pos} a desert; the model reads ${desert.temperature.value}°C"
+            desert.temperature.celsius > 20.0,
+            "vanilla calls ${desert.pos} a desert; the model reads ${desert.temperature.celsius}°C"
         )
     }
 
@@ -71,8 +71,8 @@ class RealClimateTests {
         )
         assertNotNull(snowy, "no snowy biome within the scan radius for this seed")
         assertTrue(
-            snowy.temperature.value < 15.0,
-            "vanilla calls ${snowy.pos} snowy; the model reads ${snowy.temperature.value}°C"
+            snowy.temperature.celsius < 15.0,
+            "vanilla calls ${snowy.pos} snowy; the model reads ${snowy.temperature.celsius}°C"
         )
     }
 
@@ -83,15 +83,15 @@ class RealClimateTests {
         assertNotNull(desert)
         assertNotNull(snowy)
         assertTrue(
-            desert.temperature.value > snowy.temperature.value,
-            "desert ${desert.temperature.value}°C should beat snowy ${snowy.temperature.value}°C"
+            desert.temperature.celsius > snowy.temperature.celsius,
+            "desert ${desert.temperature.celsius}°C should beat snowy ${snowy.temperature.celsius}°C"
         )
     }
 
     @Test
     fun `the probe agrees with the scan for the same chunk`() {
         val chunk = CommonFixtures.climateChunk(hottestSite.pos)
-        assertEquals(hottestSite.temperature.value, chunk.getBaseTemperature().value, 1e-9)
+        assertEquals(hottestSite.temperature.celsius, chunk.getBaseTemperature().celsius, 1e-9)
     }
 
     companion object {
