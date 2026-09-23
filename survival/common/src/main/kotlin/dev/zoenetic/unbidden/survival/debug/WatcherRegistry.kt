@@ -2,7 +2,7 @@ package dev.zoenetic.unbidden.survival.debug
 
 import dev.zoenetic.unbidden.survival.Survival
 import dev.zoenetic.unbidden.survival.climate.getWind
-import dev.zoenetic.unbidden.survival.emission.Emitters.heatAtPlayer
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex.heatAtPlayer
 import dev.zoenetic.unbidden.survival.units.Duration
 import dev.zoenetic.unbidden.survival.units.Time
 import dev.zoenetic.unbidden.survival.vitals.Exertion
@@ -52,7 +52,7 @@ public object WatcherRegistry {
                                     " A${"%.1f".format(conditions.ambient.celsius)}" +
                                     " H${"%.1f".format(conditions.radiant.celsius)}/${
                                         "%.1f".format(
-                                            radiant
+                                            radiant.celsius
                                         )
                                     }" +
                                     " W${"%.1f".format(conditions.wind.speed)}/${
@@ -63,7 +63,7 @@ public object WatcherRegistry {
                                     " X${"%.2f".format(conditions.windExposure)}" +
                                     " RH${"%.2f".format(conditions.humidity.value)}" +
                                     " S${"%.1f".format(conditions.sky.value)}${if (conditions.isUnderOpenSky) "o" else "c"}" +
-                                    " | B${"%.1f".format(vitals.bodyTemperature.heat)}" +
+                                    " | B${"%.1f".format(vitals.bodyTemperature.heat.celsius)}" +
                                     " R${"%.0f".format(vitals.breathingRate.value)}" +
                                     " P${"%.0f".format(vitals.heartRate.bpm.value)}" +
                                     " V${"%.0f".format(speed * 100)}" +

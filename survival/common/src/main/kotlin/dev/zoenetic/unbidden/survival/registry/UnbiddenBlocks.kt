@@ -1,6 +1,7 @@
 package dev.zoenetic.unbidden.survival.registry
 
 import dev.zoenetic.unbidden.survival.Survival
+import dev.zoenetic.unbidden.survival.emission.VANILLA_EMITTERS
 import dev.zoenetic.unbidden.survival.fuel.FirewoodBlock
 import dev.zoenetic.unbidden.survival.platform.getValue
 import dev.zoenetic.unbidden.survival.torch.FuelledTorchBlock

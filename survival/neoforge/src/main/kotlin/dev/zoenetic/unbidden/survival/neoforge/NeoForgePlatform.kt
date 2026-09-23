@@ -1,12 +1,13 @@
 package dev.zoenetic.unbidden.survival.neoforge
 
 import dev.zoenetic.unbidden.survival.conditions.PlayerConditions
-import dev.zoenetic.unbidden.survival.platform.ChunkView
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex
+import dev.zoenetic.unbidden.survival.platform.ChunkStore
 import dev.zoenetic.unbidden.survival.platform.Platform
 import dev.zoenetic.unbidden.survival.platform.PlayerStore
 import dev.zoenetic.unbidden.survival.platform.SyncedPlayerStore
 import dev.zoenetic.unbidden.survival.vitals.Vitals
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.loading.FMLLoader
 import net.neoforged.neoforge.attachment.AttachmentType
@@ -24,9 +25,12 @@ public object NeoForgePlatform : Platform {
 
     override val register: NeoForgeRegister = NeoForgeRegister
 
-    override val emitters: ChunkView<Long2ObjectOpenHashMap<Long>> = NeoForgeChunkView(
+    override val emitters: ChunkStore<Long2LongOpenHashMap> = NeoForgePersistentSyncedChunkStore(
         register.attachment("chunk_emitters") {
-            AttachmentType.builder(Supplier { Long2ObjectOpenHashMap<Long>() }).build()
+            AttachmentType.builder(Supplier { EmitterIndex.create() })
+                .serialize(EmitterIndex.CODEC.fieldOf("emitters"))
+                .sync(EmitterIndex.STREAM_CODEC)
+                .build()
         }
     )
 
@@ -37,7 +41,7 @@ public object NeoForgePlatform : Platform {
             }
         )
 
-    override val vitals: SyncedPlayerStore<Vitals> = NeoForgeSyncedPlayerStore(
+    override val vitals: SyncedPlayerStore<Vitals> = NeoForgePersistentSyncedPlayerStore(
         register.attachment("vitals") {
             AttachmentType.builder(Supplier { Vitals.DEFAULT })
                 .serialize(Vitals.CODEC.fieldOf("vitals"))

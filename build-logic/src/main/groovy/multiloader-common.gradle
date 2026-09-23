@@ -77,3 +77,15 @@ processResources {
 
     inputs.properties(expandProps)
 }
+
+// The gametest and datagen source sets are not wired into `build` by the loader plugins, so a
+// signature change in main can leave them broken without anything failing. Compile them as part
+// of `check`. Deferred because the source sets are declared in each module's own build script,
+// after this plugin is applied.
+afterEvaluate {
+    ['gametestClasses', 'datagenClasses'].each { name ->
+        if (tasks.findByName(name) != null) {
+            tasks.named('check') { dependsOn name }
+        }
+    }
+}

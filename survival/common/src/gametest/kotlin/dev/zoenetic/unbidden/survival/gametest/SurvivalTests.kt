@@ -3,7 +3,7 @@ package dev.zoenetic.unbidden.survival.gametest
 import dev.zoenetic.unbidden.survival.Survival
 import dev.zoenetic.unbidden.survival.climate.getHumidity
 import dev.zoenetic.unbidden.survival.conditions.PlayerConditions
-import dev.zoenetic.unbidden.survival.emission.Emitters
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex
 import dev.zoenetic.unbidden.survival.units.Heat
 import dev.zoenetic.unbidden.survival.units.Time
 import dev.zoenetic.unbidden.survival.vitals.COMFORT_HIGH
@@ -133,6 +133,9 @@ object SurvivalTests {
 
         val absolute = helper.absolutePos(relative)
         val index = Survival.platform.emitters.get(helper.level.getChunkAt(absolute))
+            ?: throw helper.assertionException(
+                "chunk at $absolute has no heat index at all (LevelChunkMixin?)"
+            )
         if (!index.containsKey(absolute.asLong())) {
             throw helper.assertionException(
                 "campfire at $absolute never reached the chunk's heat index (LevelChunkMixin?)"
@@ -148,7 +151,7 @@ object SurvivalTests {
 
         val absolute = helper.absolutePos(relative)
         val index = Survival.platform.emitters.get(helper.level.getChunkAt(absolute))
-        if (index.containsKey(absolute.asLong())) {
+        if (index != null && index.containsKey(absolute.asLong())) {
             throw helper.assertionException("campfire at $absolute is still in the heat index")
         }
         helper.succeed()
@@ -160,7 +163,7 @@ object SurvivalTests {
         val player = helper.playerAt(BlockPos(2, 2, 1))
 
         val absolute = helper.absolutePos(campfire)
-        val sources = Emitters.atPlayer(player)
+        val sources = EmitterIndex.atPlayer(player)
         if (sources.none { it == absolute }) {
             throw helper.assertionException(
                 "campfire at $absolute was not among the ${sources.size} sources found " +

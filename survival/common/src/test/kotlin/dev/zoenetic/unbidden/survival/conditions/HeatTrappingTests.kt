@@ -3,7 +3,7 @@ package dev.zoenetic.unbidden.survival.conditions
 import dev.zoenetic.unbidden.survival.CommonFixtures
 import dev.zoenetic.unbidden.survival.CommonFixtures.coldestSite
 import dev.zoenetic.unbidden.survival.CommonFixtures.seaLevelCentreOf
-import dev.zoenetic.unbidden.survival.emission.Emitters.rebuildEmitters
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex.reconcileEmitters
 import dev.zoenetic.unbidden.survival.units.Heat
 import dev.zoenetic.unbidden.survival.units.Sky
 import dev.zoenetic.unbidden.survival.units.Time
@@ -87,7 +87,7 @@ class HeatTrappingTests {
                 fireAt.z and 15,
                 Blocks.CAMPFIRE.defaultBlockState()
             )
-        chunk.rebuildEmitters()
+        val _ = chunk.reconcileEmitters()
 
         val warm = PlayerConditions.getNew(player, time).ambient.celsius
         return warm - cold

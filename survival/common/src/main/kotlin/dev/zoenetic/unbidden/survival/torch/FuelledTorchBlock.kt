@@ -4,15 +4,19 @@ import com.mojang.serialization.DataResult
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.zoenetic.unbidden.survival.emission.EmittingBlock
-import dev.zoenetic.unbidden.survival.emission.Light
+import dev.zoenetic.unbidden.survival.emission.LightTable
+import dev.zoenetic.unbidden.survival.fuel.Burnout
 import dev.zoenetic.unbidden.survival.fuel.Fuel
 import dev.zoenetic.unbidden.survival.fuel.FuelProperties.FUEL_LEVEL
 import dev.zoenetic.unbidden.survival.fuel.FuelledBlock
 import dev.zoenetic.unbidden.survival.units.Duration
 import dev.zoenetic.unbidden.survival.units.Heat
+import dev.zoenetic.unbidden.survival.units.Light
+import dev.zoenetic.unbidden.survival.units.Time
 import net.minecraft.core.BlockPos
 import net.minecraft.core.particles.SimpleParticleType
 import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -20,6 +24,7 @@ import net.minecraft.world.level.block.TorchBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT
+import net.minecraft.world.level.levelgen.SurfaceRules.state
 
 public open class FuelledTorchBlock(
     flameParticle: SimpleParticleType,
@@ -47,17 +52,12 @@ public open class FuelledTorchBlock(
             .add(FUEL_LEVEL)
     }
 
+    override val lightTable: LightTable = LightTable.IDENTITY
+
     override val maxFuel: Fuel
         get() = Fuel(15)
 
-    override fun onPlace(
-        state: BlockState,
-        level: Level,
-        pos: BlockPos,
-        oldState: BlockState,
-        movedByPiston: Boolean
-    ) {
-    } //TODO: set expiryAt and fuel level
+    override val maxLight: Light get() = Light(lightTable[maxFuel.level])
 
     override val burnRate: Duration get() = Duration(200L)
 
@@ -70,10 +70,7 @@ public open class FuelledTorchBlock(
 
     override fun getLight(state: BlockState): Light {
         if (!state.getValue(LIT)) return Light.NONE
-        val fraction = getFuel(state).level * Light.MAX.value / maxFuel.level
-        val max = Light.MAX.value
-        val light = fraction * max
-        return Light(light)
+        return Light(lightTable[getFuel(state).level])
     }
 
     override fun getFuel(state: BlockState): Fuel = Fuel(state.getValue(FUEL_LEVEL))
@@ -82,6 +79,10 @@ public open class FuelledTorchBlock(
         val newValue = fuel.coerceAtMost(maxFuel)
         return state.setValue(FUEL_LEVEL, newValue.level)
     }
+
+    override fun getBurnout(existingBurnout: Time?, now: Time, fuel: Fuel): Burnout = Burnout.forFuel(existingBurnout, now, fuel, maxFuel, burnRate)
+
+    override fun exhausted(state: BlockState): BlockState = state.setValue(LIT, false)
 
     public companion object {
         public val PARTICLE_OPTIONS_FIELD: MapCodec<SimpleParticleType> =

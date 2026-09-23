@@ -2,12 +2,13 @@ package dev.zoenetic.unbidden.survival.fabric
 
 import dev.zoenetic.unbidden.survival.Survival.MOD_ID
 import dev.zoenetic.unbidden.survival.conditions.PlayerConditions
-import dev.zoenetic.unbidden.survival.platform.ChunkView
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex
+import dev.zoenetic.unbidden.survival.platform.ChunkStore
 import dev.zoenetic.unbidden.survival.platform.Platform
 import dev.zoenetic.unbidden.survival.platform.PlayerStore
 import dev.zoenetic.unbidden.survival.platform.SyncedPlayerStore
 import dev.zoenetic.unbidden.survival.vitals.Vitals
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate
 import net.fabricmc.loader.api.FabricLoader
@@ -22,9 +23,11 @@ public object FabricPlatform : Platform {
 
     override val register: FabricRegister = FabricRegister
 
-    override val emitters: ChunkView<Long2ObjectOpenHashMap<Long>> = FabricChunkView(
+    override val emitters: ChunkStore<Long2LongOpenHashMap> = FabricPersistentSyncedChunkStore(
         AttachmentRegistry.create(id("chunk_emitters")) {
-            it.initializer { Long2ObjectOpenHashMap<Long>() }
+            it.initializer { EmitterIndex.create() }
+                .persistent(EmitterIndex.CODEC)
+                .syncWith(EmitterIndex.STREAM_CODEC, AttachmentSyncPredicate.all())
         }
     )
 
@@ -32,12 +35,12 @@ public object FabricPlatform : Platform {
         AttachmentRegistry.create(id("player_conditions"))
     )
 
-    override val vitals: SyncedPlayerStore<Vitals> = FabricSyncedPlayerStore(
+    override val vitals: SyncedPlayerStore<Vitals> = FabricPersistentSyncedPlayerStore(
         AttachmentRegistry.create(id("vitals"))
         {
             it.initializer { Vitals.DEFAULT }
-                .syncWith(Vitals.STREAM_CODEC, AttachmentSyncPredicate.all())
                 .persistent(Vitals.CODEC)
+                .syncWith(Vitals.STREAM_CODEC, AttachmentSyncPredicate.all())
         })
 
 }

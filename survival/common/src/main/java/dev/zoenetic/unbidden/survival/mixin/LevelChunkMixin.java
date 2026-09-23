@@ -1,6 +1,6 @@
 package dev.zoenetic.unbidden.survival.mixin;
 
-import dev.zoenetic.unbidden.survival.emission.Emitters;
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -18,7 +18,7 @@ public abstract class LevelChunkMixin {
         var oldState = cir.getReturnValue();
         var chunk = (LevelChunk) (Object) this;
         if (chunk.getLevel().isClientSide()) return;
-        Emitters.onBlockChanged(chunk, pos, oldState, state);
+        EmitterIndex.onBlockChanged(chunk, pos, oldState, state);
     }
 }
 

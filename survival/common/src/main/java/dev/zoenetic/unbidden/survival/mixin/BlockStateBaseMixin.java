@@ -1,7 +1,7 @@
 package dev.zoenetic.unbidden.survival.mixin;
 
 import dev.zoenetic.unbidden.survival.emission.EmittingBlock;
-import dev.zoenetic.unbidden.survival.emission.Emitters;
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
@@ -24,7 +24,7 @@ public abstract class BlockStateBaseMixin {
     private void unbidden$emitterLight(CallbackInfo ci) {
         BlockState state = (BlockState) (Object) this;
         if (state.getBlock() instanceof EmittingBlock) {
-            lightEmission = Emitters.lightEmission(state);
+            lightEmission = EmitterIndex.lightEmission(state);
         }
     }
 

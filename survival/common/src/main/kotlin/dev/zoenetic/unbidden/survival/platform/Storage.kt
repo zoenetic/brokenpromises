@@ -4,8 +4,10 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.chunk.LevelChunk
 
-public interface ChunkView<T> {
-    public fun get(chunk: LevelChunk): T
+public interface ChunkStore<T> {
+    public fun get(chunk: LevelChunk): T?
+    public fun set(chunk: LevelChunk, value: T)
+    public fun remove(chunk: LevelChunk)
 }
 
 public interface PlayerStore<T> {

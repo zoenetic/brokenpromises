@@ -25,7 +25,7 @@ class MovementsTests {
     fun `temperatures just past each edge give small, positive reductions`() {
         val high = penalty(normal + Heat(SPEED_PENALTY_DEAD_ZONE + 1))
         assertTrue(high > 0.0 && high < 1.0, "high $high")
-        val low = penalty(normal - Heat(SPEED_PENALTY_DEAD_ZONE - 1))
+        val low = penalty(normal - Heat(SPEED_PENALTY_DEAD_ZONE + 1))
         assertTrue(low > 0.0 && low < 1.0, "low $low")
     }
 

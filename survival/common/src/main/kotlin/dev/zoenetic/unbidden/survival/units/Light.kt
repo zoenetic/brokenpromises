@@ -1,4 +1,4 @@
-package dev.zoenetic.unbidden.survival.emission
+package dev.zoenetic.unbidden.survival.units
 
 public data class Light(public val value: Int) {
     init {
@@ -6,7 +6,6 @@ public data class Light(public val value: Int) {
     }
 
     public operator fun compareTo(o: Light): Int = value.compareTo(o.value)
-    public operator fun times(i: Int): Light = Light(value * i)
 
     public companion object {
         public val NONE: Light = Light(0)

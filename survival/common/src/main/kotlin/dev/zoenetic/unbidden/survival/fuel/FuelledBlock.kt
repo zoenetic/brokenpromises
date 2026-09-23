@@ -1,6 +1,8 @@
 package dev.zoenetic.unbidden.survival.fuel
 
 import dev.zoenetic.unbidden.survival.units.Duration
+import dev.zoenetic.unbidden.survival.units.Time
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 
 public interface FuelledBlock {
@@ -8,4 +10,10 @@ public interface FuelledBlock {
     public val maxFuel: Fuel
     public fun getFuel(state: BlockState): Fuel
     public fun setFuel(state: BlockState, fuel: Fuel): BlockState
+    public fun getBurnout(existingBurnout: Time?, now: Time, fuel: Fuel): Burnout
+    public fun exhausted(state: BlockState): BlockState
+
+    public companion object {
+        public fun Block.fuelledOrNull(): FuelledBlock? = this as? FuelledBlock
+    }
 }

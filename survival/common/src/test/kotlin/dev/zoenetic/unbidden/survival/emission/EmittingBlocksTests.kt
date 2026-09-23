@@ -1,8 +1,8 @@
 package dev.zoenetic.unbidden.survival.emission
 
 import dev.zoenetic.unbidden.survival.CommonFixtures
-import dev.zoenetic.unbidden.survival.emission.Emitters.isEmittingBlock
-import dev.zoenetic.unbidden.survival.emission.Emitters.isLit
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex.isLit
+import dev.zoenetic.unbidden.survival.emission.EmittingBlock.Companion.emitterOrNull
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.junit.jupiter.api.BeforeAll
@@ -17,19 +17,19 @@ class EmittingBlocksTests {
 
     @Test
     fun `lava counts as a lit heat source`() {
-        assertTrue(Blocks.LAVA.defaultBlockState().isEmittingBlock())
+        assertTrue(Blocks.LAVA.defaultBlockState().block.emitterOrNull() != null)
         assertTrue(Blocks.LAVA.defaultBlockState().isLit())
     }
 
     @Test
     fun `campfires can be unlit`() {
-        assertTrue(campfire.isEmittingBlock())
+        assertTrue(campfire.block.emitterOrNull() != null)
         assertTrue(campfire.getValue(BlockStateProperties.LIT))
     }
 
     @Test
     fun `a non heat source block is not a heat source`() {
-        assertFalse(stone.isEmittingBlock())
+        assertFalse(stone.block.emitterOrNull() != null)
     }
 
     companion object {

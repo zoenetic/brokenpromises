@@ -2,9 +2,11 @@ package dev.zoenetic.unbidden.survival
 
 import dev.zoenetic.unbidden.survival.climate.temperatureFromNoise
 import dev.zoenetic.unbidden.survival.conditions.PlayerConditions
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex
 import dev.zoenetic.unbidden.survival.platform.*
 import dev.zoenetic.unbidden.survival.units.Heat
 import dev.zoenetic.unbidden.survival.vitals.Vitals
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.SharedConstants
 import net.minecraft.core.*
@@ -89,12 +91,20 @@ object TestPlatform : Platform {
 
     override val register: Register = TestRegistry
 
-    override val emitters: ChunkView<Long2ObjectOpenHashMap<Long>> =
-        object : ChunkView<Long2ObjectOpenHashMap<Long>> {
-            private val byChunk = IdentityHashMap<LevelChunk, Long2ObjectOpenHashMap<Long>>()
+    override val emitters: ChunkStore<Long2LongOpenHashMap> =
+        object : ChunkStore<Long2LongOpenHashMap> {
+            private val byChunk = IdentityHashMap<LevelChunk, Long2LongOpenHashMap>()
 
-            override fun get(chunk: LevelChunk): Long2ObjectOpenHashMap<Long> =
-                byChunk.getOrPut(chunk) { Long2ObjectOpenHashMap<Long>() }
+            override fun get(chunk: LevelChunk): Long2LongOpenHashMap =
+                byChunk.getOrPut(chunk) { EmitterIndex.create() }
+
+            override fun set(chunk: LevelChunk, value: Long2LongOpenHashMap) {
+                byChunk[chunk] = value
+            }
+
+            override fun remove(chunk: LevelChunk) {
+                byChunk.remove(chunk)
+            }
         }
 
     override val playerConditions: PlayerStore<PlayerConditions> =

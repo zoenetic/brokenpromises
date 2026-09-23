@@ -1,6 +1,6 @@
 package dev.zoenetic.unbidden.survival.fabric
 
-import dev.zoenetic.unbidden.survival.platform.ChunkView
+import dev.zoenetic.unbidden.survival.platform.ChunkStore
 import dev.zoenetic.unbidden.survival.platform.PlayerStore
 import dev.zoenetic.unbidden.survival.platform.SyncedPlayerStore
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType
@@ -8,10 +8,16 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.chunk.LevelChunk
 
-internal class FabricChunkView<T : Any>(
+internal class FabricPersistentSyncedChunkStore<T : Any>(
     private val type: AttachmentType<T>,
-) : ChunkView<T> {
-    override fun get(chunk: LevelChunk): T = chunk.getAttachedOrCreate(type)
+) : ChunkStore<T> {
+    override fun get(chunk: LevelChunk): T? = chunk.getAttached(type)
+    override fun set(chunk: LevelChunk, value: T) {
+        chunk.setAttached(type, value)
+    }
+    override fun remove(chunk: LevelChunk) {
+        chunk.removeAttached(type)
+    }
 }
 
 internal class FabricPlayerStore<T : Any>(
@@ -23,7 +29,7 @@ internal class FabricPlayerStore<T : Any>(
     }
 }
 
-internal class FabricSyncedPlayerStore<T : Any>(
+internal class FabricPersistentSyncedPlayerStore<T : Any>(
     private val type: AttachmentType<T>,
 ) : SyncedPlayerStore<T> {
     override fun get(player: Player): T? = player.getAttached(type)

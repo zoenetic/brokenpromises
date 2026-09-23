@@ -1,6 +1,6 @@
 package dev.zoenetic.unbidden.survival.neoforge
 
-import dev.zoenetic.unbidden.survival.platform.ChunkView
+import dev.zoenetic.unbidden.survival.platform.ChunkStore
 import dev.zoenetic.unbidden.survival.platform.PlayerStore
 import dev.zoenetic.unbidden.survival.platform.SyncedPlayerStore
 import net.minecraft.server.level.ServerPlayer
@@ -9,10 +9,16 @@ import net.minecraft.world.level.chunk.LevelChunk
 import net.neoforged.neoforge.attachment.AttachmentType
 import java.util.function.Supplier
 
-internal class NeoForgeChunkView<T : Any>(
+internal class NeoForgePersistentSyncedChunkStore<T : Any>(
     val type: Supplier<AttachmentType<T>>,
-) : ChunkView<T> {
-    override fun get(chunk: LevelChunk): T = chunk.getData(type)
+) : ChunkStore<T> {
+    override fun get(chunk: LevelChunk): T? = chunk.getExistingDataOrNull(type)
+    override fun set(chunk: LevelChunk, value: T) {
+        chunk.setData(type, value)
+    }
+    override fun remove(chunk: LevelChunk) {
+        chunk.removeData(type)
+    }
 }
 
 internal class NeoForgePlayerStore<T : Any>(
@@ -24,7 +30,7 @@ internal class NeoForgePlayerStore<T : Any>(
     }
 }
 
-internal class NeoForgeSyncedPlayerStore<T : Any>(
+internal class NeoForgePersistentSyncedPlayerStore<T : Any>(
     val type: Supplier<AttachmentType<T>>,
 ) : SyncedPlayerStore<T> {
     override fun get(player: Player): T? = player.getExistingDataOrNull(type)

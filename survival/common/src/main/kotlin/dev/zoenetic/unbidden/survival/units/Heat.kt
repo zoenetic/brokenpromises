@@ -13,7 +13,8 @@ public value class Heat(public val celsius: Double) : Comparable<Heat> {
     public operator fun div(d: Double): Heat = Heat(celsius / d)
     public operator fun times(o: Heat): Heat = Heat(celsius * o.celsius)
     public operator fun times(d: Double): Heat = Heat(celsius * d)
-    override fun compareTo(other: Heat): Int = compareValues(celsius, other)
+    override fun compareTo(other: Heat): Int = compareValues(celsius, other.celsius)
+    override fun toString(): String = "$celsius°C"
 
     public fun coerceAtLeast(minimum: Double): Heat {
         return if (this.celsius < minimum) Heat(minimum) else this

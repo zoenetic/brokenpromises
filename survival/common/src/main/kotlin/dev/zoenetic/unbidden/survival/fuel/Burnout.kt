@@ -29,12 +29,14 @@ public value class Burnout(public val at: Time) {
     }
 
     public companion object {
+        public val NEVER: Burnout = Burnout(Time(Long.MAX_VALUE))
 
-        public fun start(now: Time, fuel: Fuel, burnRate: Duration): Burnout {
-            val ticksForFuel = burnRate * fuel.level
-            return Burnout(now + ticksForFuel)
+        public fun forFuel(current: Time?, now: Time, fuel: Fuel, max: Fuel, burnRate: Duration): Burnout {
+            require(fuel.level in 1..max.level) { "fuel must be 1..${max.level}, got ${fuel.level}" }
+            val full = now + burnRate * fuel.level
+            current ?: return Burnout(full)
+            val slack = full - current
+            return if (slack >= Duration(0) && slack < burnRate) Burnout(current) else Burnout(full)
         }
-
     }
-
 }

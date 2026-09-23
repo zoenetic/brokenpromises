@@ -1,6 +1,7 @@
 package dev.zoenetic.unbidden.survival
 
 import dev.zoenetic.unbidden.survival.conditions.PlayerConditions
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex
 import dev.zoenetic.unbidden.survival.platform.Platform
 import dev.zoenetic.unbidden.survival.registry.UnbiddenBlocks
 import dev.zoenetic.unbidden.survival.registry.UnbiddenItems
@@ -44,5 +45,6 @@ public object Survival {
         Exertion.tick(level)
         SpeedPenalty.tick(level)
         BreathParticles.tick(level)
+        EmitterIndex.tickDrops(level)
     }
 }

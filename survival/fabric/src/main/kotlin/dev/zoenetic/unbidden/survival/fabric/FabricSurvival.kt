@@ -2,7 +2,7 @@ package dev.zoenetic.unbidden.survival.fabric
 
 import dev.zoenetic.unbidden.survival.Survival
 import dev.zoenetic.unbidden.survival.debug.*
-import dev.zoenetic.unbidden.survival.emission.Emitters.rebuildEmitters
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex.reconcileEmitters
 import dev.zoenetic.unbidden.survival.vitals.Exertion
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -34,8 +34,12 @@ public object FabricSurvival : ModInitializer {
             WatcherRegistry.remove(handler.player.uuid)
         }
 
-        ServerChunkEvents.CHUNK_LOAD.register { _, chunk, _ ->
-            chunk.rebuildEmitters()
+        ServerChunkEvents.CHUNK_LOAD.register { level, chunk, _ ->
+            Survival.serverState.dropSchedule(level).reset(chunk.pos, chunk.reconcileEmitters())
+        }
+
+        ServerChunkEvents.CHUNK_UNLOAD.register { level, chunk ->
+            Survival.serverState.dropSchedule(level).reset(chunk.pos, null)
         }
 
         ServerTickEvents.END_LEVEL_TICK.register { level ->

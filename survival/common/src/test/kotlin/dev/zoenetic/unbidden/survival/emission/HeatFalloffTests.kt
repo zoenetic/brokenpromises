@@ -1,7 +1,7 @@
 package dev.zoenetic.unbidden.survival.emission
 
-import dev.zoenetic.unbidden.survival.emission.Emitters.EMISSION_SOFTENING
-import dev.zoenetic.unbidden.survival.emission.Emitters.heatFrom
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex.EMISSION_SOFTENING
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex.heatFrom
 import dev.zoenetic.unbidden.survival.units.Heat
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3

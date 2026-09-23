@@ -1,16 +1,14 @@
 package dev.zoenetic.unbidden.survival.emission
 
+import dev.zoenetic.unbidden.survival.units.Heat
+import dev.zoenetic.unbidden.survival.units.Light
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 
 internal val VANILLA_EMITTERS: Map<Block, EmittingBlock> by lazy {
     mapOf(
-//        Blocks.CAMPFIRE to BPBlocks.CAMPFIRE,
-//        Blocks.CANDLE to
-//                Blocks.FIRE to UnbiddenBlocks.FIRE,
-//        Blocks.FURNACE to UnbiddenBlocks.FURNACE,
-//        Blocks.LAVA to UnbiddenBlocks,
-//        Blocks.MAGMA_BLOCK to Power(20.0),
-//        Blocks.TORCH to Power(3.0),
-//        Blocks.WALL_TORCH to Power(3.0),
+        Blocks.CAMPFIRE to EmittingBlock.simple(Heat(20.0), Light(15)),
+        Blocks.FURNACE to EmittingBlock.simple(Heat(20.0), Light(15)),
+        Blocks.LAVA to EmittingBlock.simple(Heat(20.0), Light(15))
     )
 }

@@ -4,7 +4,7 @@ import dev.zoenetic.unbidden.survival.Survival
 import dev.zoenetic.unbidden.survival.climate.getClimate
 import dev.zoenetic.unbidden.survival.climate.getTemperature
 import dev.zoenetic.unbidden.survival.climate.getWind
-import dev.zoenetic.unbidden.survival.emission.Emitters
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex
 import dev.zoenetic.unbidden.survival.units.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -49,7 +49,7 @@ public class PlayerConditions(
                 Altitude(pos.y - level.seaLevel),
                 chunkClimate.humidity, sky, Time(level.overworldClockTime)
             )
-            val radiant = Emitters.heatAtPlayer(player)
+            val radiant = EmitterIndex.heatAtPlayer(player)
             val heat = trapHeat(radiant, sky, ambient)
             val chunkWind = chunk.getWind()
             val windExposure = player.getWindExposure(chunkWind)

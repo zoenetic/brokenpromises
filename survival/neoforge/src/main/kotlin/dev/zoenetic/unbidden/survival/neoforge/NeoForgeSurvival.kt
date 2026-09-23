@@ -2,7 +2,7 @@ package dev.zoenetic.unbidden.survival.neoforge
 
 import dev.zoenetic.unbidden.survival.Survival
 import dev.zoenetic.unbidden.survival.debug.*
-import dev.zoenetic.unbidden.survival.emission.Emitters.rebuildEmitters
+import dev.zoenetic.unbidden.survival.emission.EmitterIndex.reconcileEmitters
 import dev.zoenetic.unbidden.survival.vitals.Exertion
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -23,6 +23,7 @@ public class NeoForgeSurvival(modBus: IEventBus) {
         NeoForgePlatform.init(modBus)
 
         val bus = NeoForge.EVENT_BUS
+
         bus.addListener(RegisterCommandsEvent::class.java) { event ->
             event.dispatcher.register(
                 rootCommand.then(
@@ -32,24 +33,35 @@ public class NeoForgeSurvival(modBus: IEventBus) {
                 )
             )
         }
+
         bus.addListener(PlayerEvent.PlayerLoggedInEvent::class.java) { event ->
             val player = event.entity as? ServerPlayer ?: return@addListener
             WatcherRegistry.addDev(player)
         }
+
         bus.addListener(PlayerEvent.PlayerLoggedOutEvent::class.java) { event ->
             val player = event.entity as? ServerPlayer ?: return@addListener
             Exertion.remove(player.uuid)
             WatcherRegistry.remove(player.uuid)
         }
+
         bus.addListener(ChunkEvent.Load::class.java) { event ->
             val chunk = event.chunk
-            chunk.rebuildEmitters()
+            Survival.serverState.dropSchedule(chunk.level)
+                .reset(chunk.pos, chunk.reconcileEmitters())
         }
+
+        bus.addListener(ChunkEvent.Unload::class.java) { event ->
+            val chunk = event.chunk
+            Survival.serverState.dropSchedule(chunk.level).reset(chunk.pos, null)
+        }
+
         bus.addListener(LevelTickEvent.Post::class.java) { event ->
             val level = event.level
             if (level !is ServerLevel) return@addListener
             Survival.tick(level)
         }
+
         bus.addListener(ServerTickEvent.Post::class.java) { event ->
             WatcherRegistry.tick(event.server)
         }

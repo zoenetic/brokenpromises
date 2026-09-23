@@ -62,7 +62,7 @@ public data class BodyTemperature(
             val ambient = ambient
             val target = when {
                 ambient < COMFORT_LOW ->
-                    (COMFORT_LOW - ambient) * NORMAL_BODY_TEMPERATURE - (COLD_LEAKAGE / insulation.value)
+                    NORMAL_BODY_TEMPERATURE - (COLD_LEAKAGE / insulation.value) * (COMFORT_LOW - ambient)
 
                 ambient > COMFORT_HIGH ->
                     NORMAL_BODY_TEMPERATURE + (HEAT_LEAKAGE * insulation.value) * (ambient - COMFORT_HIGH)
