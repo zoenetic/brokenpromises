@@ -8,7 +8,7 @@ public data class Light(public val value: Int) {
     public operator fun compareTo(o: Light): Int = value.compareTo(o.value)
 
     public companion object {
-        public val NONE: Light = Light(0)
+        public val ZERO: Light = Light(0)
         public val MAX: Light = Light(15)
     }
 }

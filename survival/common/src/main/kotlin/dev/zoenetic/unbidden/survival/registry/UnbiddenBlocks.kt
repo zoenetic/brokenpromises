@@ -1,47 +1,42 @@
 package dev.zoenetic.unbidden.survival.registry
 
 import dev.zoenetic.unbidden.survival.Survival
-import dev.zoenetic.unbidden.survival.emission.VANILLA_EMITTERS
-import dev.zoenetic.unbidden.survival.fuel.FirewoodBlock
+import dev.zoenetic.unbidden.survival.campfire.UnbiddenCampfireBlock
+import dev.zoenetic.unbidden.survival.fuel.firewood.FirewoodBlock
 import dev.zoenetic.unbidden.survival.platform.getValue
-import dev.zoenetic.unbidden.survival.torch.FuelledTorchBlock
-import dev.zoenetic.unbidden.survival.torch.FuelledWallTorchBlock
+import dev.zoenetic.unbidden.survival.torch.UnbiddenTorchBlock
+import dev.zoenetic.unbidden.survival.torch.UnbiddenWallTorchBlock
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.SoundType
-import net.minecraft.world.level.block.state.BlockBehaviour
-import net.minecraft.world.level.material.PushReaction
 
 public object UnbiddenBlocks {
 
-    public val FIREWOOD: Block by Survival.platform.register.block(
-        "firewood",
-        BlockBehaviour.Properties.of().strength(2F),
-        ::FirewoodBlock
+    public val CAMPFIRE: Block by Survival.platform.register.block(
+        "campfire",
+        { props -> UnbiddenCampfireBlock(true, 1, props) },
+        { UnbiddenBlockBehaviour.Properties.campfire() }
     )
 
-    public val FUELLED_TORCH_BLOCK: Block by Survival.platform.register.block(
-        "fuelled_torch",
-        BlockBehaviour.Properties.of().noCollision().instabreak().sound(SoundType.WOOD)
-            .pushReaction(
-                PushReaction.DESTROY
-            )
-    ) { props ->
-        FuelledTorchBlock(ParticleTypes.FLAME, props)
-    }
+    public val FIREWOOD: Block by Survival.platform.register.block(
+        "firewood",
+        { props -> FirewoodBlock(props) },
+        { UnbiddenBlockBehaviour.Properties.firewood() }
+    )
 
-    public val FUELLED_WALL_TORCH_BLOCK: Block by Survival.platform.register.block(
-        "fuelled_wall_torch",
-        BlockBehaviour.Properties.of().noCollision().instabreak().sound(SoundType.WOOD)
-            .pushReaction(
-                PushReaction.DESTROY
-            )
-    ) { props ->
-        FuelledWallTorchBlock(ParticleTypes.FLAME, props)
-    }
+    public val TORCH: Block by Survival.platform.register.block(
+        "torch",
+        { props -> UnbiddenTorchBlock(ParticleTypes.FLAME, props) },
+        { UnbiddenBlockBehaviour.Properties.torch() }
+    )
+
+    public val WALL_TORCH: Block by Survival.platform.register.block(
+        "wall_torch",
+        { props -> UnbiddenWallTorchBlock(ParticleTypes.FLAME, props) },
+        { UnbiddenBlockBehaviour.Properties.wallTorch() }
+    )
 
     public val ALL: List<Block> get() = listOf(
-        FIREWOOD, FUELLED_TORCH_BLOCK, FUELLED_WALL_TORCH_BLOCK
+        CAMPFIRE, FIREWOOD, TORCH, WALL_TORCH
     )
 
     public fun init() {}

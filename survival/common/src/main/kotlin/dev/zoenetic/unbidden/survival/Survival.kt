@@ -6,6 +6,7 @@ import dev.zoenetic.unbidden.survival.platform.Platform
 import dev.zoenetic.unbidden.survival.registry.UnbiddenBlocks
 import dev.zoenetic.unbidden.survival.registry.UnbiddenItems
 import dev.zoenetic.unbidden.survival.registry.UnbiddenSounds
+import dev.zoenetic.unbidden.survival.registry.UnbiddenWideners
 import dev.zoenetic.unbidden.survival.vitals.BreathParticles
 import dev.zoenetic.unbidden.survival.vitals.Exertion
 import dev.zoenetic.unbidden.survival.vitals.SpeedPenalty
@@ -25,14 +26,13 @@ public object Survival {
     public lateinit var platform: Platform
         private set
 
-    public lateinit var serverState: ServerState
-        private set
-
     public fun init(platform: Platform) {
         this.platform = platform
+        ServerState.init()
         UnbiddenBlocks.init()
         UnbiddenItems.init()
         UnbiddenSounds.init()
+        UnbiddenWideners.init()
         LOGGER.info(
             "Unbidden: Survival (server) starting on {} (Minecraft 26.2)",
             platform.name

@@ -44,32 +44,32 @@ public object NeoForgeRegister : Register {
 
     override fun block(
         name: String,
-        properties: BlockBehaviour.Properties,
-        factory: (BlockBehaviour.Properties) -> Block
+        blockFactory: (BlockBehaviour.Properties) -> Block,
+        propertiesFactory: () -> BlockBehaviour.Properties,
     ): DeferredBlock<Block> {
-        val holder = blocks.registerBlock(name, factory, Supplier { properties })
+        val holder = blocks.registerBlock(name, blockFactory, Supplier { propertiesFactory() })
         return holder
     }
 
     override fun blockEntity(
         name: String,
-        factory: (BlockEntityType<*>, BlockPos, BlockState) -> BlockEntity,
-        blocks: () -> Set<Block>,
-    ): DeferredHolder<BlockEntityType<*>, BlockEntityType<*>> {
+        entityFactory: (BlockEntityType<*>, BlockPos, BlockState) -> BlockEntity,
+        blocksFactory: () -> Set<Block>
+    ): Holder<BlockEntityType<*>> {
         lateinit var holder: DeferredHolder<BlockEntityType<*>, BlockEntityType<*>>
         holder = blockEntities.register(name) { ->
-            BlockEntityType({ pos, state -> factory(holder.value(), pos, state) }, blocks())
+            BlockEntityType({ pos, state -> entityFactory(holder.value(), pos, state) }, blocksFactory())
         }
         return holder
     }
 
     override fun blockItem(
         name: String,
-        block: () -> Block,
-        properties: Item.Properties
-    ): DeferredItem<Item> =
+        properties: Item.Properties,
+        blockFactory: () -> Block
+    ): Holder<Item> =
         items.registerItem(name, { props ->
-            BlockItem(block(), props)
+            BlockItem(blockFactory(), props)
         }, Supplier { properties })
 
     override fun sound(

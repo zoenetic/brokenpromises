@@ -8,7 +8,7 @@ public object FuelValues {
 
     // TODO: look into vanilla fuel values and wire up if appropriate
     internal val map: Map<Item, Fuel> = mapOf(
-        UnbiddenItems.FIREWOOD_ITEM to Fuel(4),
+        UnbiddenItems.FIREWOOD to Fuel(4),
         Items.CHARCOAL to Fuel(8),
         Items.COAL to Fuel(8),
     )

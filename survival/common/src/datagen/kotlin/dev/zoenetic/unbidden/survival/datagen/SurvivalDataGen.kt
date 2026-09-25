@@ -12,19 +12,7 @@ typealias ProviderFactory =
 
 object SurvivalDataGen {
     val providers: List<ProviderFactory> = listOf(
-        UnbiddenRecipes::runner,
-        { output, registries ->
-            LootTableProvider(
-                output,
-                emptySet(),
-                listOf(
-                    LootTableProvider.SubProviderEntry(
-                        { UnbiddenLootTables() },
-                        LootContextParamSets.BLOCK,
-                    )
-                ),
-                registries
-            )
-        }
+        UnbiddenRecipes::factory,
+        UnbiddenLootTables::factory,
     )
 }

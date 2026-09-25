@@ -1,0 +1,7 @@
+{
+  "parent": "unbidden:block/template_firewood_3",
+  "textures": {
+    "billet": "minecraft:block/campfire_log",
+    "particle": "minecraft:block/campfire_log"
+  }
+}

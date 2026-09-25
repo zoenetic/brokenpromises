@@ -7,7 +7,6 @@ import dev.zoenetic.unbidden.survival.platform.*
 import dev.zoenetic.unbidden.survival.units.Heat
 import dev.zoenetic.unbidden.survival.vitals.Vitals
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.SharedConstants
 import net.minecraft.core.*
 import net.minecraft.core.registries.Registries
@@ -49,24 +48,22 @@ import java.util.*
 object TestRegistry : Register {
     private fun id(name: String) = Identifier.fromNamespaceAndPath(Survival.NAMESPACE, name)
 
-    // Bootstrap.bootStrap() freezes BuiltInRegistries, and Block's constructor needs an
-    // unfrozen block registry to take an intrusive holder, so the mod's own content is stubbed
     override fun block(
         name: String,
-        properties: BlockBehaviour.Properties,
-        factory: (BlockBehaviour.Properties) -> Block
+        blockFactory: (BlockBehaviour.Properties) -> Block,
+        propertiesFactory: () -> BlockBehaviour.Properties
     ): Holder<Block> = Holder.direct(mock(Block::class.java))
 
     override fun blockEntity(
         name: String,
-        factory: (BlockEntityType<*>, BlockPos, BlockState) -> BlockEntity,
-        blocks: () -> Set<Block>
+        entityFactory: (BlockEntityType<*>, BlockPos, BlockState) -> BlockEntity,
+        blocksFactory: () -> Set<Block>
     ): Holder<BlockEntityType<*>> = Holder.direct(mock(BlockEntityType::class.java))
 
     override fun blockItem(
         name: String,
-        block: () -> Block,
-        properties: Item.Properties
+        properties: Item.Properties,
+        blockFactory: () -> Block
     ): Holder<Item> = Holder.direct(mock(Item::class.java))
 
     override fun sound(
@@ -84,12 +81,26 @@ object TestRegistry : Register {
     ): Holder<Item> = Holder.direct(mock(Item::class.java))
 }
 
+object TestWidener : Widener {
+    private val requests: MutableList<Pair<BlockEntityType<*>, List<Block>>> = mutableListOf()
+
+    override fun addValidBlocks(type: BlockEntityType<*>, blocks: () -> List<Block>) {
+        requests += type to blocks()
+    }
+
+    fun widened(type: BlockEntityType<*>): List<Block> =
+        requests.filter { it.first === type }.flatMap { it.second }
+
+    fun reset(): Unit = requests.clear()
+}
+
 object TestPlatform : Platform {
     override val name: String = "test"
     override val isDevelopmentEnvironment: Boolean = false
     override fun isModLoaded(modId: String): Boolean = false
 
     override val register: Register = TestRegistry
+    override val wideners: Widener = TestWidener
 
     override val emitters: ChunkStore<Long2LongOpenHashMap> =
         object : ChunkStore<Long2LongOpenHashMap> {

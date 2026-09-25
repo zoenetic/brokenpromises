@@ -1,8 +1,9 @@
 package dev.zoenetic.unbidden.survival.fire
 
+import dev.zoenetic.unbidden.survival.ServerState
 import dev.zoenetic.unbidden.survival.Survival
 import dev.zoenetic.unbidden.survival.fuel.Fuel
-import dev.zoenetic.unbidden.survival.fuel.FuelProperties.FUEL_LEVEL
+import dev.zoenetic.unbidden.survival.registry.UnbiddenBlockStateProperties.FUEL_LEVEL
 import dev.zoenetic.unbidden.survival.fuel.FuelValues
 import dev.zoenetic.unbidden.survival.registry.UnbiddenSounds
 import net.minecraft.core.BlockPos
@@ -34,7 +35,7 @@ public object CampfireInteractions {
             return InteractionResult.SUCCESS
         }
 
-        val fireAttempts = Survival.serverState.fireAttempts()
+        val fireAttempts = ServerState.fireAttempts()
         val attempt = fireAttempts.recordAttempt(player.uuid, pos, time)
         val lit = level.random.nextDouble() < FireStarting.chance(attempt)
 

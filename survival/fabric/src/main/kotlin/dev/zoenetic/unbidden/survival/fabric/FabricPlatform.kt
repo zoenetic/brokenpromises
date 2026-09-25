@@ -7,6 +7,7 @@ import dev.zoenetic.unbidden.survival.platform.ChunkStore
 import dev.zoenetic.unbidden.survival.platform.Platform
 import dev.zoenetic.unbidden.survival.platform.PlayerStore
 import dev.zoenetic.unbidden.survival.platform.SyncedPlayerStore
+import dev.zoenetic.unbidden.survival.platform.Widener
 import dev.zoenetic.unbidden.survival.vitals.Vitals
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry
@@ -22,6 +23,7 @@ public object FabricPlatform : Platform {
     override fun isModLoaded(modId: String): Boolean = FabricLoader.getInstance().isModLoaded(modId)
 
     override val register: FabricRegister = FabricRegister
+    override val wideners: Widener = FabricWidener
 
     override val emitters: ChunkStore<Long2LongOpenHashMap> = FabricPersistentSyncedChunkStore(
         AttachmentRegistry.create(id("chunk_emitters")) {

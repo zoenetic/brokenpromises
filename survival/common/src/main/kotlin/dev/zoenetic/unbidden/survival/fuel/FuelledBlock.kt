@@ -7,7 +7,9 @@ import net.minecraft.world.level.block.state.BlockState
 
 public interface FuelledBlock {
     public val burnRate: Duration
-    public val maxFuel: Fuel
+    public val fuelCapacity: Fuel
+        get() = Fuel.MAX
+
     public fun getFuel(state: BlockState): Fuel
     public fun setFuel(state: BlockState, fuel: Fuel): BlockState
     public fun getBurnout(existingBurnout: Time?, now: Time, fuel: Fuel): Burnout

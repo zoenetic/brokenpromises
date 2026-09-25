@@ -5,7 +5,7 @@ import dev.zoenetic.unbidden.survival.fuel.DropSchedule
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.level.Level
 
-public class ServerState {
+public object ServerState {
     private var FIRE_ATTEMPTS: FireAttempts? = null
     private var DROP_SCHEDULES: MutableMap<ResourceKey<Level>, DropSchedule>? = null
 
@@ -25,4 +25,8 @@ public class ServerState {
     public fun dropSchedule(level: Level): DropSchedule =
         (DROP_SCHEDULES ?: error("accessed drop schedule state outside a running server"))
             .getOrPut(level.dimension()) { DropSchedule() }
+
+
+    public fun init() {}
+
 }

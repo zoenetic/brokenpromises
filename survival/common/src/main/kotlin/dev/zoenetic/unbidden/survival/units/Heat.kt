@@ -25,6 +25,8 @@ public value class Heat(public val celsius: Double) : Comparable<Heat> {
     }
 
     public companion object {
+        public val ZERO: Heat = Heat(0.0)
+
         public val CODEC: Codec<Heat> =
             Codec.DOUBLE.xmap(
                 ::Heat,

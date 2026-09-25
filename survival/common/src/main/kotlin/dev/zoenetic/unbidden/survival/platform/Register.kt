@@ -22,20 +22,20 @@ public interface Register {
 
     public fun block(
         name: String,
-        properties: BlockBehaviour.Properties,
-        factory: (BlockBehaviour.Properties) -> Block
+        blockFactory: (BlockBehaviour.Properties) -> Block,
+        propertiesFactory: () -> BlockBehaviour.Properties,
     ): Holder<Block>
 
     public fun blockEntity(
         name: String,
-        factory: (BlockEntityType<*>, BlockPos, BlockState) -> BlockEntity,
-        blocks: () -> Set<Block>
+        entityFactory: (BlockEntityType<*>, BlockPos, BlockState) -> BlockEntity,
+        blocksFactory: () -> Set<Block>
     ): Holder<BlockEntityType<*>>
 
     public fun blockItem(
         name: String,
-        block: () -> Block,
-        properties: Item.Properties = Item.Properties()
+        properties: Item.Properties = Item.Properties(),
+        blockFactory: () -> Block,
     ): Holder<Item>
 
     public fun sound(

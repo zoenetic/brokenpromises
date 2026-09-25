@@ -1,0 +1,69 @@
+package dev.zoenetic.unbidden.survival.datagen
+
+import dev.zoenetic.unbidden.survival.Survival
+import dev.zoenetic.unbidden.survival.fuel.firewood.FirewoodBlock.Companion.AXIS
+import dev.zoenetic.unbidden.survival.fuel.firewood.FirewoodBlock.Companion.BILLETS
+import dev.zoenetic.unbidden.survival.fuel.firewood.FirewoodBlock.Companion.MAX_BILLETS
+import dev.zoenetic.unbidden.survival.fuel.firewood.FirewoodBlock.Companion.MIN_BILLETS
+import dev.zoenetic.unbidden.survival.registry.UnbiddenBlocks
+import dev.zoenetic.unbidden.survival.registry.UnbiddenItems
+import net.minecraft.client.data.models.BlockModelGenerators
+import net.minecraft.client.data.models.ItemModelOutput
+import net.minecraft.client.data.models.MultiVariant
+import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerator
+import net.minecraft.client.data.models.blockstates.MultiVariantGenerator
+import net.minecraft.client.data.models.blockstates.PropertyDispatch
+import net.minecraft.client.data.models.model.ItemModelUtils
+import net.minecraft.client.data.models.model.ModelInstance
+import net.minecraft.client.data.models.model.ModelTemplate
+import net.minecraft.client.data.models.model.TextureMapping
+import net.minecraft.client.data.models.model.TextureSlot
+import net.minecraft.client.renderer.block.dispatch.Variant
+import net.minecraft.client.resources.model.sprite.Material
+import net.minecraft.core.Direction.Axis
+import net.minecraft.resources.Identifier
+import net.minecraft.util.random.WeightedList
+import java.util.Optional
+import java.util.function.BiConsumer
+import java.util.function.Consumer
+
+fun createFirewood(
+    blockStateOutput: Consumer<BlockModelDefinitionGenerator>,
+    modelOutput: BiConsumer<Identifier, ModelInstance>,
+    itemModelOutput: ItemModelOutput,
+    billetSlot: TextureSlot,
+) {
+    val billet = Material(Identifier.withDefaultNamespace("block/campfire_log"))
+    val textures = TextureMapping()
+        .put(billetSlot, billet)
+        .put(TextureSlot.PARTICLE, billet)
+
+    val models: Map<Int, Identifier> = (MIN_BILLETS..MAX_BILLETS).associateWith { billets ->
+        val template = ModelTemplate(
+            Optional.of(Identifier.fromNamespaceAndPath(Survival.NAMESPACE, "block/template_firewood_$billets")),
+            Optional.empty(),
+            billetSlot,
+            TextureSlot.PARTICLE,
+        )
+        template.createWithSuffix(UnbiddenBlocks.FIREWOOD, "_$billets", textures, modelOutput)
+    }
+
+    blockStateOutput.accept(
+        MultiVariantGenerator.dispatch(UnbiddenBlocks.FIREWOOD)
+            .with(
+                PropertyDispatch.initial(BILLETS).generate { billets ->
+                    MultiVariant(WeightedList.of(Variant(models.getValue(billets))))
+                }
+            )
+            .with(
+                PropertyDispatch.modify(AXIS)
+                    .select(Axis.X, BlockModelGenerators.Y_ROT_90)
+                    .select(Axis.Z, BlockModelGenerators.NOP)
+            )
+    )
+
+    itemModelOutput.accept(
+        UnbiddenItems.FIREWOOD.asItem(),
+        ItemModelUtils.plainModel(models.getValue(MIN_BILLETS)),
+    )
+}

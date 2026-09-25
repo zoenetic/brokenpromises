@@ -1,5 +1,6 @@
 package dev.zoenetic.unbidden.survival.fabric
 
+import dev.zoenetic.unbidden.survival.ServerState
 import dev.zoenetic.unbidden.survival.Survival
 import dev.zoenetic.unbidden.survival.debug.*
 import dev.zoenetic.unbidden.survival.emission.EmitterIndex.reconcileEmitters
@@ -7,6 +8,7 @@ import dev.zoenetic.unbidden.survival.vitals.Exertion
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 
@@ -25,6 +27,9 @@ public object FabricSurvival : ModInitializer {
             )
         }
 
+        ServerLifecycleEvents.SERVER_STARTING.register { ServerState.onServerStarting() }
+        ServerLifecycleEvents.SERVER_STOPPED.register { ServerState.onServerStopped() }
+
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
             WatcherRegistry.addDev(handler.player)
         }
@@ -35,11 +40,11 @@ public object FabricSurvival : ModInitializer {
         }
 
         ServerChunkEvents.CHUNK_LOAD.register { level, chunk, _ ->
-            Survival.serverState.dropSchedule(level).reset(chunk.pos, chunk.reconcileEmitters())
+            ServerState.dropSchedule(level).reset(chunk.pos, chunk.reconcileEmitters())
         }
 
         ServerChunkEvents.CHUNK_UNLOAD.register { level, chunk ->
-            Survival.serverState.dropSchedule(level).reset(chunk.pos, null)
+            ServerState.dropSchedule(level).reset(chunk.pos, null)
         }
 
         ServerTickEvents.END_LEVEL_TICK.register { level ->

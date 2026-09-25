@@ -1,6 +1,6 @@
 package dev.zoenetic.unbidden.survival.mixin;
 
-import dev.zoenetic.unbidden.survival.fuel.FirewoodBlock;
+import dev.zoenetic.unbidden.survival.fuel.firewood.FirewoodBlock;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.context.UseOnContext;

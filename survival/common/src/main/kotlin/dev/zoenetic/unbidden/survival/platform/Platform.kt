@@ -11,6 +11,7 @@ public interface Platform {
     public fun isModLoaded(modId: String): Boolean
 
     public val register: Register
+    public val wideners: Widener
 
     public val emitters: ChunkStore<Long2LongOpenHashMap>
     public val playerConditions: PlayerStore<PlayerConditions>

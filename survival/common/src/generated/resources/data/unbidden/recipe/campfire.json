@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "f": "unbidden:firewood"
+  },
+  "pattern": [
+    "ff",
+    "ff"
+  ],
+  "result": {
+    "id": "unbidden:campfire"
+  }
+}

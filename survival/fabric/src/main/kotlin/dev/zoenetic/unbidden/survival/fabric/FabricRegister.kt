@@ -24,8 +24,8 @@ public object FabricRegister : Register {
 
     override fun block(
         name: String,
-        properties: BlockBehaviour.Properties,
-        factory: (BlockBehaviour.Properties) -> Block
+        blockFactory: (BlockBehaviour.Properties) -> Block,
+        propertiesFactory: () -> BlockBehaviour.Properties,
     ): Holder<Block> {
         val key = ResourceKey.create(
             Registries.BLOCK,
@@ -34,28 +34,28 @@ public object FabricRegister : Register {
         return Registry.registerForHolder(
             BuiltInRegistries.BLOCK,
             key,
-            factory(properties.setId(key))
+            blockFactory(propertiesFactory().setId(key))
         )
     }
 
     override fun blockEntity(
         name: String,
-        factory: (BlockEntityType<*>, BlockPos, BlockState) -> BlockEntity,
-        blocks: () -> Set<Block>
+        entityFactory: (BlockEntityType<*>, BlockPos, BlockState) -> BlockEntity,
+        blocksFactory: () -> Set<Block>
     ): Holder<BlockEntityType<*>> {
         val key = ResourceKey.create(
             Registries.BLOCK_ENTITY_TYPE,
             Identifier.fromNamespaceAndPath(Survival.NAMESPACE, name)
         )
         lateinit var type: BlockEntityType<*>
-        type = BlockEntityType({ pos, state -> factory(type, pos, state) }, blocks())
+        type = BlockEntityType({ pos, state -> entityFactory(type, pos, state) }, blocksFactory())
         return Registry.registerForHolder(BuiltInRegistries.BLOCK_ENTITY_TYPE, key, type)
     }
 
     override fun blockItem(
         name: String,
-        block: () -> Block,
-        properties: Item.Properties
+        properties: Item.Properties,
+        blockFactory: () -> Block
     ): Holder<Item> {
         val key = ResourceKey.create(
             Registries.ITEM,
@@ -64,7 +64,7 @@ public object FabricRegister : Register {
         val holder = Registry.registerForHolder(
             BuiltInRegistries.ITEM,
             key,
-            BlockItem(block(), properties.setId(key))
+            BlockItem(blockFactory(), properties.setId(key))
         )
         return holder.value().builtInRegistryHolder()
     }

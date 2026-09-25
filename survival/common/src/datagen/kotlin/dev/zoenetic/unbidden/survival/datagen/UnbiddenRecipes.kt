@@ -16,24 +16,24 @@ class UnbiddenRecipes(registries: HolderLookup.Provider, output: RecipeOutput) :
 
     override fun buildRecipes() {
         shapeless(RecipeCategory.MISC, Items.STICK)
-            .requires(UnbiddenItems.FIREWOOD_ITEM)
+            .requires(UnbiddenItems.FIREWOOD)
             .unlockedBy(
                 "has_firewood",
-                has(UnbiddenItems.FIREWOOD_ITEM)
+                has(UnbiddenItems.FIREWOOD)
             ).save(output)
 
-        shaped(RecipeCategory.MISC, Items.CAMPFIRE, 1)
+        shaped(RecipeCategory.MISC, UnbiddenItems.CAMPFIRE, 1)
             .pattern("ff")
             .pattern("ff")
-            .define('f', UnbiddenItems.FIREWOOD_ITEM)
+            .define('f', UnbiddenItems.FIREWOOD)
             .unlockedBy(
                 "has_firewood",
-                has(UnbiddenItems.FIREWOOD_ITEM)
+                has(UnbiddenItems.FIREWOOD)
 
             )
             .save(output)
 
-        shaped(RecipeCategory.MISC, UnbiddenItems.FUELLED_TORCH_ITEM)
+        shaped(RecipeCategory.MISC, UnbiddenItems.TORCH, 1)
             .pattern("c")
             .pattern("s")
             .define('c', ItemTags.COALS)
@@ -45,7 +45,7 @@ class UnbiddenRecipes(registries: HolderLookup.Provider, output: RecipeOutput) :
 
     }
 
-    private class Runner(
+    private class Factory(
         packOutput: PackOutput,
         registries: CompletableFuture<HolderLookup.Provider>,
     ) : RecipeProvider.Runner(packOutput, registries) {
@@ -59,9 +59,9 @@ class UnbiddenRecipes(registries: HolderLookup.Provider, output: RecipeOutput) :
     }
 
     companion object {
-        fun runner(
+        fun factory(
             output: PackOutput,
             registries: CompletableFuture<HolderLookup.Provider>,
-        ): DataProvider = Runner(output, registries)
+        ): DataProvider = Factory(output, registries)
     }
 }

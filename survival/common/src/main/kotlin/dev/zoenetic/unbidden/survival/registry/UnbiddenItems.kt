@@ -7,16 +7,22 @@ import net.minecraft.world.item.Item
 
 public object UnbiddenItems {
 
-    public val FIREWOOD_ITEM: Item by Survival.platform.register.blockItem(
-        "firewood",
-        UnbiddenBlocks::FIREWOOD,
-        Item.Properties()
+    public val CAMPFIRE: Item by Survival.platform.register.blockItem(
+        "campfire",
+        Item.Properties(),
+        UnbiddenBlocks::CAMPFIRE,
     )
 
-    public val FUELLED_TORCH_ITEM: Item by Survival.platform.register.standingAndWallBlockItem(
-        "fuelled_torch",
-        UnbiddenBlocks::FUELLED_TORCH_BLOCK,
-        UnbiddenBlocks::FUELLED_WALL_TORCH_BLOCK,
+    public val FIREWOOD: Item by Survival.platform.register.blockItem(
+        "firewood",
+        Item.Properties(),
+        UnbiddenBlocks::FIREWOOD,
+    )
+
+    public val TORCH: Item by Survival.platform.register.standingAndWallBlockItem(
+        "torch",
+        UnbiddenBlocks::TORCH,
+        UnbiddenBlocks::WALL_TORCH,
         Direction.DOWN,
         Item.Properties()
     )

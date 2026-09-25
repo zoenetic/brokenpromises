@@ -81,19 +81,12 @@ loom {
             setConfigName('Fabric Game Test')
             ideConfigGenerated(true)
             runDir('runs/gametest')
-            source(sourceSets.gametest)
             vmArg('-Dfabric-api.gametest')
             vmArg("-Dfabric-api.gametest.report-file=${layout.buildDirectory.get().asFile}/gametest/report.xml")
         }
     }
 }
 
-// `runClientWithDatagen` regenerates data, then launches the client. Kept as a
-// separate task from `runClient` because the data run is a full headless client
-// start and the output is committed, so most launches have nothing to regenerate.
-// Gradle copies mod resources before any run task and never runs a task twice in
-// one build, so the fresh output is copied into the run's resources by a second
-// task after datagen finishes and before the client starts.
 def syncGeneratedResources = tasks.register('syncGeneratedResources', Copy) {
     from(common_project.file('src/generated/resources'))
     into(layout.buildDirectory.dir('resources/main'))

@@ -2,6 +2,7 @@ package dev.zoenetic.unbidden.survival.emission
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
+import dev.zoenetic.unbidden.survival.ServerState
 import dev.zoenetic.unbidden.survival.Survival
 import dev.zoenetic.unbidden.survival.emission.EmittingBlock.Companion.emitterOrNull
 import dev.zoenetic.unbidden.survival.fuel.Burnout
@@ -120,7 +121,7 @@ public object EmitterIndex {
     public fun lightAtPlayer(level: ServerLevel, player: ServerPlayer): Light {
         val blockPos = player.blockPosition()
         val emitters = at(level, blockPos, LIGHT_RADIUS)
-        var brightest = Light.NONE
+        var brightest = Light.ZERO
         for (pos in emitters) {
             val state = level.getBlockState(pos)
             val block = state.block
@@ -166,7 +167,7 @@ public object EmitterIndex {
     }
 
     public fun tickDrops(level: ServerLevel) {
-        val schedule = Survival.serverState.dropSchedule(level)
+        val schedule = ServerState.dropSchedule(level)
         val now = Time(level.gameTime)
         for (chunkPos in schedule.due(now)) {
             val chunk = level.chunkSource.getChunkNow(chunkPos.x, chunkPos.z)
@@ -192,14 +193,14 @@ public object EmitterIndex {
         if (!index.write(key, burnout)) return
         Survival.platform.emitters.set(chunk, index)
         dropDeadline(state, burnout, now)?.let {
-            Survival.serverState.dropSchedule(level).notice(chunk.pos, it)
+            ServerState.dropSchedule(level).notice(chunk.pos, it)
         }
     }
 
     private fun dropDeadline(state: BlockState, burnout: Burnout?, now: Time): Time? {
         if (burnout == null || burnout == Burnout.NEVER) return null
         val fuelled = state.block.fuelledOrNull() ?: return null
-        return burnout.nextDropAt(now, fuelled.maxFuel, fuelled.burnRate)
+        return burnout.nextDropAt(now, fuelled.fuelCapacity, fuelled.burnRate)
     }
 
     public fun encode(map: Long2LongOpenHashMap): LongStream {
@@ -254,7 +255,7 @@ public object EmitterIndex {
             val pos = BlockPos.of(key)
             val state = getBlockState(pos)
             val fuelled = state.block.fuelledOrNull() ?: continue
-            val wanted = Burnout(at).fuelAt(now, fuelled.maxFuel, fuelled.burnRate)
+            val wanted = Burnout(at).fuelAt(now, fuelled.fuelCapacity, fuelled.burnRate)
             if (wanted == fuelled.getFuel(state)) continue
             val drained = fuelled.setFuel(state, wanted)
             val next = if (wanted.level == 0) fuelled.exhausted(drained) else (drained)
@@ -275,21 +276,30 @@ public object EmitterIndex {
         return earliest
     }
 
-    public fun LevelChunk.pruneMissing(index: Long2LongOpenHashMap) {
+    public fun LevelChunk.pruneMissing(index: Long2LongOpenHashMap): Boolean {
         val keys = index.keys.iterator()
+        var didPrune = false
         while (keys.hasNext()) {
             val key = keys.nextLong()
-            if (getBlockState(BlockPos.of(key)).block.emitterOrNull() == null) keys.remove()
+            if (getBlockState(BlockPos.of(key)).block.emitterOrNull() == null) {
+                keys.remove()
+                didPrune = true
+            }
         }
+        return didPrune
     }
 
     public fun LevelChunk.reconcileEmitters(): Time? {
         if (level.isClientSide) return null
+        val serverLevel = level as ServerLevel
+        val ready = serverLevel.chunkSource.chunkMap.getChunkToSend(this.pos.pack()) != null
+        if (!ready) return null
         val now = Time(level.gameTime)
         val existing = Survival.platform.emitters.get(this)
         val index = existing ?: create()
-        pruneMissing(index)
+        val didPrune = pruneMissing(index)
         var earliest: Time? = null
+        var didUpdate = didPrune
         for (sectionY in minSectionY..maxSectionY) {
             val section = getSection(getSectionIndexFromSectionY(sectionY))
             if (!section.maybeHas { state -> state.block.emitterOrNull() != null }) continue
@@ -303,7 +313,8 @@ public object EmitterIndex {
                         val state = section.getBlockState(localX, localY, localZ)
                         val key = blockPos.asLong()
                         val burnout = burnoutFor(state, index.burnoutAt(key), now)
-                        val _ = index.write(key, burnout)
+                        val write = index.write(key, burnout)
+                        didUpdate = didUpdate || write
                         val deadline = dropDeadline(state, burnout, now)
                         if (deadline != null) {
                             val current = earliest
@@ -313,7 +324,11 @@ public object EmitterIndex {
                 }
             }
         }
-        if (existing != null || index.isNotEmpty()) Survival.platform.emitters.set(this, index)
+        if (existing != null) {
+            if (didUpdate) markUnsaved()
+        } else if (index.isNotEmpty()) {
+            Survival.platform.emitters.set(this, index)
+        }
         return earliest
     }
 

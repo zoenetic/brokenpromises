@@ -24,6 +24,7 @@ public object NeoForgePlatform : Platform {
             .getModFileById(modId) != null
 
     override val register: NeoForgeRegister = NeoForgeRegister
+    override val wideners: NeoForgeWidener = NeoForgeWidener
 
     override val emitters: ChunkStore<Long2LongOpenHashMap> = NeoForgePersistentSyncedChunkStore(
         register.attachment("chunk_emitters") {
@@ -52,5 +53,6 @@ public object NeoForgePlatform : Platform {
 
     public fun init(bus: IEventBus) {
         register.init(bus)
+        wideners.init(bus)
     }
 }
