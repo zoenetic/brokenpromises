@@ -8,12 +8,14 @@ import dev.zoenetic.unbidden.survival.platform.Platform
 import dev.zoenetic.unbidden.survival.platform.PlayerStore
 import dev.zoenetic.unbidden.survival.platform.SyncedPlayerStore
 import dev.zoenetic.unbidden.survival.platform.Widener
+import dev.zoenetic.unbidden.survival.platform.isSendable
 import dev.zoenetic.unbidden.survival.vitals.Vitals
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.resources.Identifier
+import net.minecraft.world.level.chunk.LevelChunk
 
 public object FabricPlatform : Platform {
     override val name: String = "fabric"
@@ -29,7 +31,10 @@ public object FabricPlatform : Platform {
         AttachmentRegistry.create(id("chunk_emitters")) {
             it.initializer { EmitterIndex.create() }
                 .persistent(EmitterIndex.CODEC)
-                .syncWith(EmitterIndex.STREAM_CODEC, AttachmentSyncPredicate.all())
+                .syncWith(EmitterIndex.STREAM_CODEC
+                ) { chunk, _ ->
+                    chunk is LevelChunk && chunk.isSendable()
+                }
         }
     )
 
