@@ -291,9 +291,6 @@ public object EmitterIndex {
 
     public fun LevelChunk.reconcileEmitters(): Time? {
         if (level.isClientSide) return null
-        val serverLevel = level as ServerLevel
-        val ready = serverLevel.chunkSource.chunkMap.getChunkToSend(this.pos.pack()) != null
-        if (!ready) return null
         val now = Time(level.gameTime)
         val existing = Survival.platform.emitters.get(this)
         val index = existing ?: create()

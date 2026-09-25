@@ -6,8 +6,10 @@ import dev.zoenetic.unbidden.survival.platform.ChunkStore
 import dev.zoenetic.unbidden.survival.platform.Platform
 import dev.zoenetic.unbidden.survival.platform.PlayerStore
 import dev.zoenetic.unbidden.survival.platform.SyncedPlayerStore
+import dev.zoenetic.unbidden.survival.platform.isSendable
 import dev.zoenetic.unbidden.survival.vitals.Vitals
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
+import net.minecraft.world.level.chunk.LevelChunk
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.loading.FMLLoader
 import net.neoforged.neoforge.attachment.AttachmentType
@@ -30,7 +32,9 @@ public object NeoForgePlatform : Platform {
         register.attachment("chunk_emitters") {
             AttachmentType.builder(Supplier { EmitterIndex.create() })
                 .serialize(EmitterIndex.CODEC.fieldOf("emitters"))
-                .sync(EmitterIndex.STREAM_CODEC)
+                .sync({ chunk, _ ->
+                    chunk is LevelChunk && chunk.isSendable()
+                }, EmitterIndex.STREAM_CODEC)
                 .build()
         }
     )
