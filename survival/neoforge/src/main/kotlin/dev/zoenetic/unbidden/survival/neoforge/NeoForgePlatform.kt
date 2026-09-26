@@ -2,11 +2,11 @@ package dev.zoenetic.unbidden.survival.neoforge
 
 import dev.zoenetic.unbidden.survival.conditions.PlayerConditions
 import dev.zoenetic.unbidden.survival.emission.EmitterIndex
+import dev.zoenetic.unbidden.survival.emission.isSendable
 import dev.zoenetic.unbidden.survival.platform.ChunkStore
 import dev.zoenetic.unbidden.survival.platform.Platform
 import dev.zoenetic.unbidden.survival.platform.PlayerStore
 import dev.zoenetic.unbidden.survival.platform.SyncedPlayerStore
-import dev.zoenetic.unbidden.survival.platform.isSendable
 import dev.zoenetic.unbidden.survival.vitals.Vitals
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import net.minecraft.world.level.chunk.LevelChunk

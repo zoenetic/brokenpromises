@@ -1,4 +1,4 @@
-package dev.zoenetic.unbidden.survival.datagen
+package dev.zoenetic.unbidden.survival.datagen.models
 
 import dev.zoenetic.unbidden.survival.Survival
 import dev.zoenetic.unbidden.survival.fuel.firewood.FirewoodBlock.Companion.AXIS
@@ -13,17 +13,13 @@ import net.minecraft.client.data.models.MultiVariant
 import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerator
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator
 import net.minecraft.client.data.models.blockstates.PropertyDispatch
-import net.minecraft.client.data.models.model.ItemModelUtils
-import net.minecraft.client.data.models.model.ModelInstance
-import net.minecraft.client.data.models.model.ModelTemplate
-import net.minecraft.client.data.models.model.TextureMapping
-import net.minecraft.client.data.models.model.TextureSlot
+import net.minecraft.client.data.models.model.*
 import net.minecraft.client.renderer.block.dispatch.Variant
 import net.minecraft.client.resources.model.sprite.Material
 import net.minecraft.core.Direction.Axis
 import net.minecraft.resources.Identifier
 import net.minecraft.util.random.WeightedList
-import java.util.Optional
+import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
@@ -40,7 +36,12 @@ fun createFirewood(
 
     val models: Map<Int, Identifier> = (MIN_BILLETS..MAX_BILLETS).associateWith { billets ->
         val template = ModelTemplate(
-            Optional.of(Identifier.fromNamespaceAndPath(Survival.NAMESPACE, "block/template_firewood_$billets")),
+            Optional.of(
+                Identifier.fromNamespaceAndPath(
+                    Survival.NAMESPACE,
+                    "block/template_firewood_$billets"
+                )
+            ),
             Optional.empty(),
             billetSlot,
             TextureSlot.PARTICLE,

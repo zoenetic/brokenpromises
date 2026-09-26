@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "unbidden:block/torch"
+    }
+  }
+}
