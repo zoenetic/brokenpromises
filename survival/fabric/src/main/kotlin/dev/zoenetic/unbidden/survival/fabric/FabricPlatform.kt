@@ -8,7 +8,7 @@ import dev.zoenetic.unbidden.survival.platform.Platform
 import dev.zoenetic.unbidden.survival.platform.PlayerStore
 import dev.zoenetic.unbidden.survival.platform.SyncedPlayerStore
 import dev.zoenetic.unbidden.survival.platform.Widener
-import dev.zoenetic.unbidden.survival.platform.isSendable
+import dev.zoenetic.unbidden.survival.emission.isSendable
 import dev.zoenetic.unbidden.survival.vitals.Vitals
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry
